@@ -334,7 +334,7 @@ def main(args=None):
         gripper_release()
         movej(Global_0)
         time.sleep(1)
-
+        movej(Global_0)
         gripper_measure()
         ### 높이 측정
         for pallet_index in range(total_count):
