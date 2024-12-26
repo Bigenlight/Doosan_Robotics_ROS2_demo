@@ -356,7 +356,7 @@ def main(args=None):
             Pallet_Pose_r_up = trans(Pallet_Pose_r, delta)
             movel(Pallet_Pose_r_up)
 
-            task_compliance_ctrl(stx=[500, 500, 500, 100, 100, 100])
+            task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
             set_desired_force(fd=[0, 0, -20, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
             while not check_force_condition(DR_AXIS_Z, max=5):
                 pass
