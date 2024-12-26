@@ -99,6 +99,60 @@ def main(args=None):
         node.get_logger().info("Gripper closed")
         time.sleep(0.5)
 
+    def validate_heights(data):
+        """
+        높이가 21.61 이상인 경우 에러를 발생시킵니다.
+        """
+        for key, value in data.items():
+            if value >= 71.61 or value <= 20.0:
+                raise ValueError(f"Height at index {key} is {value}, which exceeds the maximum allowed value of 21.61.")
+
+    def sort_heights(data):
+        """
+        높이를 기준으로 오름차순 정렬합니다.
+        높이가 같은 경우, 키 값이 작은 순서대로 정렬합니다.
+        """
+        sorted_data = dict(sorted(data.items(), key=lambda item: (item[1], int(item[0]))))
+        return sorted_data
+    
+    def pick_and_place_sorted(sorted_data):
+        """
+        정렬된 데이터를 기반으로 pick-and-place 작업을 수행합니다.
+        Left Pallet에 배치할 때 pallet_index를 0부터 순차적으로 증가시킵니다.
+        """
+        new_pallet_index = 0  # Left Pallet의 새로운 인덱스
+        
+        gripper_release()
+
+        for key, height in sorted_data.items():
+            node.get_logger().info(f"Processing pallet_index {key} with height {height}")
+
+            # 원래 pallet_index는 key, 새로운 인덱스는 new_pallet_index
+            # Left Pallet의 위치를 새로운 인덱스로 설정
+            int_key = int(key)
+            Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, int_key)
+            Pallet_Pose_r_up = trans(Pallet_Pose_r, [0, 0, 70, 0, 0, 0])
+
+            # Approach from above
+            movel(Pallet_Pose_r_up)
+            movel(Pallet_Pose_r)
+
+            # Gripper을 사용하여 물체 집기
+            gripper_grip()
+
+            Pallet_Pose_l = get_pattern_point_3x3(pl00, pl02, pl22, pl20, new_pallet_index)
+            delta = [0,0,70,0,0,0]
+            Pallet_Pose_l_up = trans(Pallet_Pose_l, delta)
+            movel(Pallet_Pose_r_up)
+            # 이동 후 그리퍼 열기
+            movel(Pallet_Pose_l_up)
+            movel(Pallet_Pose_l)
+            gripper_release()
+            time.sleep(0.2)
+            movel(Pallet_Pose_l_up)
+
+            new_pallet_index += 1  # 다음 Left Pallet 위치로 이동
+
     Global_0 = posj(0.00, -0.01, 90.02, -0.01, 89.99, 0.01)
 
     set_singular_handling()  # or pass a parameter if needed
@@ -135,6 +189,7 @@ def main(args=None):
         node.get_logger().info("Starting a pick-and-place cycle from Right Pallet -> Left Pallet...")
         gripper_release()
         movej(Global_0)
+        time.sleep(1)
 
         gripper_measure()
         # Right -> Left
@@ -167,6 +222,22 @@ def main(args=None):
             movel(Pallet_Pose_r_up)
 
             
+        node.get_logger().info("Starting a pick-and-place cycle from Right Pallet -> Left Pallet...")
+
+        gripper_release()
+        # 높이 감지
+        try:
+            validate_heights(data)
+            sorted_data = sort_heights(data)
+            node.get_logger().info(f"Sorted data: {sorted_data}")
+        except ValueError as e:
+            node.get_logger().error(f"Height validation error: {e}")
+            break  # 에러 발생 시 루프 종료
+
+        # Pick and Place based on sorted heights
+        pick_and_place_sorted(sorted_data)
+
+        node.get_logger().info("Pick-and-place from Right Pallet -> Left Pallet done!")
 
         
         movej(Global_0)
