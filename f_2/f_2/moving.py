@@ -132,7 +132,8 @@ def main(args=None):
 
             # 원래 pallet_index는 key, 새로운 인덱스는 new_pallet_index
             # Left Pallet의 위치를 새로운 인덱스로 설정
-            Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, new_pallet_index)
+            int_key = int(key)
+            Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, int_key)
             Pallet_Pose_r_up = trans(Pallet_Pose_r, [0, 0, 70, 0, 0, 0])
 
             # Approach from above
@@ -142,10 +143,12 @@ def main(args=None):
             # Gripper을 사용하여 물체 집기
             gripper_grip()
 
-            # 이동 후 그리퍼 열기
+            Pallet_Pose_l = get_pattern_point_3x3(pl00, pl02, pl22, pl20, new_pallet_index)
+            delta = [0,0,70,0,0,0]
+            Pallet_Pose_l_up = trans(Pallet_Pose_l, delta)
             movel(Pallet_Pose_r_up)
-
-            
+            # 이동 후 그리퍼 열기
+            movel(Pallet_Pose_l_up)
             gripper_release()
 
             new_pallet_index += 1  # 다음 Left Pallet 위치로 이동
