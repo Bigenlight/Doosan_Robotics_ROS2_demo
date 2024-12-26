@@ -22,6 +22,11 @@ def main(args=None):
             set_tcp,
             set_digital_output,
             get_digital_input,
+            task_compliance_ctrl,
+            set_desired_force,
+            check_force_condition,
+            release_compliance_ctrl,
+            get_current_posx,
             movej,
             movel,
             # movesx,  # We won't use movesx
@@ -31,6 +36,8 @@ def main(args=None):
             set_velx,
             set_accx,
             trans,
+            DR_AXIS_Z,
+            DR_FC_MOD_REL,
         )
         from DR_common2 import (posj, posx)
 
@@ -83,6 +90,14 @@ def main(args=None):
         node.get_logger().info("Gripper opened")
         time.sleep(0.5)
 
+    def gripper_measure():
+        set_digital_output(1, ON)
+        set_digital_output(2, OFF)
+        node.get_logger().info("Measure...")
+        rclpy.spin_once(node, timeout_sec=0.5)
+        #wait_digital_input(sig_num=1, desired_state=True)
+        node.get_logger().info("Gripper closed")
+        time.sleep(0.5)
 
     Global_0 = posj(0.00, -0.01, 90.02, -0.01, 89.99, 0.01)
 
@@ -114,11 +129,14 @@ def main(args=None):
     
     total_count = 9  # 3x3
 
+    data = {}
+
     while rclpy.ok():
         node.get_logger().info("Starting a pick-and-place cycle from Right Pallet -> Left Pallet...")
         gripper_release()
         movej(Global_0)
 
+        gripper_measure()
         # Right -> Left
         for pallet_index in range(total_count):
             node.get_logger().info(f"[Right -> Left] Picking object at index: {pallet_index}")
@@ -128,78 +146,32 @@ def main(args=None):
             delta = [0, 0, 70, 0, 0, 0]
             Pallet_Pose_r_up = trans(Pallet_Pose_r, delta)
             movel(Pallet_Pose_r_up)
-            movel(Pallet_Pose_r)
 
-            # Instead of movesx(...)
-            # movesx([Pallet_Pose_r_up, Pallet_Pose_r], ref=0)
-            # we do:
-            #   movel(Pallet_Pose_r_up)
-            #   movel(Pallet_Pose_r)
+            task_compliance_ctrl(stx=[500, 500, 500, 100, 100, 100])
+            set_desired_force(fd=[0, 0, -20, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
+            while not check_force_condition(DR_AXIS_Z, max=10):
+                pass
 
-            gripper_grip()
+            # Get current pose and extract height
+            current_pose = get_current_posx()
+            pose, status = current_pose
+            height = pose[2]
+            data[str(pallet_index)] = height
 
-            # Move to left side
-            Pallet_Pose_l = get_pattern_point_3x3(pl00, pl02, pl22, pl20, pallet_index)
-            Pallet_Pose_l_up = trans(Pallet_Pose_l, delta)
+        
+
+            # Release compliance control
+            release_compliance_ctrl()
+            node.get_logger().info(f"Completed measurement for index {pallet_index}")
+
+            movel(Pallet_Pose_r_up)
 
             
-            # Instead of movesx([Pallet_Pose_r_up, Pallet_Pose_l_up], ref=0)
-            # do two movel() calls or none if you prefer going directly:
-            movel(Pallet_Pose_r_up)
 
-            # ###### 뒤집기
-            # switch_dir_right_up = trans(switch_dir_right, delta)
-            # movel(switch_dir_right_up)
-            # movel(switch_dir_right)
-            # gripper_release()
-            # movel(switch_dir_right_up)
-
-            # # switch_dir_left_up = trans(switch_dir_left, delta)
-            # # movel(switch_dir_left_up)
-            # # movel(switch_dir_left)
-            # movej(switch_dir_left_j1)
-            # movej(switch_dir_left_j2)
-            # gripper_grip()
-            # movej(switch_dir_left_j1)
-            # movej(switch_dir_left_j3)
-            # movej(Global_0)
-            # #######
-
-            movel(Pallet_Pose_l_up)
-
-            alpha = [0, 0, 10, 0, 0, 0]
-            Pallet_Pose_l_release = trans(Pallet_Pose_l, alpha)
-            movel(Pallet_Pose_l_release)
-            gripper_release()
-            movel(Pallet_Pose_l_up)
-
-        movej(Global_0)
-        node.get_logger().info("Starting a pick-and-place cycle from Left Pallet -> Right Pallet...")
-
-        # Left -> Right
-        for pallet_index in range(total_count):
-            node.get_logger().info(f"[Left -> Right] Picking object at index: {pallet_index}")
-            Pallet_Pose_l = get_pattern_point_3x3(pl00, pl02, pl22, pl20, pallet_index)
-            delta = [0, 0, 70, 0, 0, 0]
-            Pallet_Pose_l_up = trans(Pallet_Pose_l, delta)
-
-            movel(Pallet_Pose_l_up)
-            movel(Pallet_Pose_l)
-            gripper_grip()
-            movel(Pallet_Pose_l_up)
-
-            Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, pallet_index)
-            Pallet_Pose_r_up = trans(Pallet_Pose_r, delta)
-            movel(Pallet_Pose_r_up)
-
-            alpha = [0, 0, 10, 0, 0, 0]
-            Pallet_Pose_r_release = trans(Pallet_Pose_r, alpha)
-            movel(Pallet_Pose_r_release)
-            gripper_release()
-            movel(Pallet_Pose_r_up)
-
+        
         movej(Global_0)
         node.get_logger().info("One full cycle done! Looping again...\n")
+        node.get_logger().info(f"{data}\n")
         rclpy.spin_once(node, timeout_sec=0.1)
 
     node.get_logger().info("Shutting down node.")

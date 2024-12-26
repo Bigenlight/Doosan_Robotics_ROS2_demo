@@ -144,6 +144,8 @@ def main(args=None):
 
             # 이동 후 그리퍼 열기
             movel(Pallet_Pose_r_up)
+
+            
             gripper_release()
 
             new_pallet_index += 1  # 다음 Left Pallet 위치로 이동
