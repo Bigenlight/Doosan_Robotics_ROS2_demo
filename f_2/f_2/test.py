@@ -137,7 +137,7 @@ def main(args=None):
                         break  # 'n'이 없으면 더 이상 스위치할 수 없으므로 다음 인덱스로 넘어감
                     
                     node.get_logger().info(f"\n[Switch] '{keys[i]}' (index {i}) with 'n' at '{n_key}' (index {keys.index(n_key)})")
-                    switch_pillar(keys[i], n_key)  # 물리 스위치
+                    switch_pillar(n_key, keys[i])  # 물리 스위치
                     switch_pillar_data(data, keys[i], n_key)  # 딕셔너리 스위치
                     switch_count += 1
                     time.sleep(1)  # 1초 딜레이 추가
