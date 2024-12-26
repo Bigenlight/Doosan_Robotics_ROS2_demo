@@ -177,7 +177,7 @@ def main(args=None):
         gripper_grip()
         movel(Pallet_Pose_r_up)
         # 왼쪽으로 이동
-        Pallet_Pose_l = get_pattern_point_3x3(pl00, pl02, pl22, pl20, switching_index)
+        Pallet_Pose_l = get_pattern_point_3x3(pr00, pr02, pr22, pr20, switching_index)
         Pallet_Pose_l_up = trans(Pallet_Pose_l, delta)
         movel(Pallet_Pose_r_up)
         movel(Pallet_Pose_l_up)
