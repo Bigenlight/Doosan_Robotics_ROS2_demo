@@ -286,6 +286,8 @@ def main(args=None):
         gripper_release()
         movel(Pallet_Pose_l_up)
         #####################
+
+        switch_pillar(0,4)
             
         node.get_logger().info("Starting a pick-and-place cycle from Right Pallet -> Left Pallet...")
 
