@@ -243,8 +243,6 @@ def main(args=None):
         movel(Pallet_Pose_l_up)
         #####################
 
-        #data_group = {'0': 'm', '1': 'm', '2': 'l', '3': 's', '4': 's', '5': 'l', '6': 's', '7': 'm', '8': 'l'}
-
         ############# 정렬 로직 시작
         #result = []
         if data_group['4'] == 's':
