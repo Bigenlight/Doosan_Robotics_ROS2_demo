@@ -153,6 +153,41 @@ def main(args=None):
 
             new_pallet_index += 1  # 다음 Left Pallet 위치로 이동
 
+    def sort_data_group(data):
+        new_data = {}
+        for key, height in data.items():
+            if height >= 40 and height <= 50:
+                new_data[key] = 's'
+            elif height >= 50 and height <= 60:
+                new_data[key] = 'm'
+            else:
+                new_data[key] = 'l'
+        return new_data
+                
+    def switch_pillar(current_index, switching_index):
+        current_index = int(current_index)
+        switching_index = int(switching_index)
+        gripper_release()
+        Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, current_index)
+        delta = [0, 0, 70, 0, 0, 0]
+        Pallet_Pose_r_up = trans(Pallet_Pose_r, delta)
+        # 접근 & 피킹
+        movel(Pallet_Pose_r_up)
+        movel(Pallet_Pose_r)
+        gripper_grip()
+        movel(Pallet_Pose_r_up)
+        # 왼쪽으로 이동
+        Pallet_Pose_l = get_pattern_point_3x3(pl00, pl02, pl22, pl20, switching_index)
+        Pallet_Pose_l_up = trans(Pallet_Pose_l, delta)
+        movel(Pallet_Pose_r_up)
+        movel(Pallet_Pose_l_up)
+        # 물건 배치 (조금 내려간 상태)
+        alpha = [0, 0, 10, 0, 0, 0]
+        Pallet_Pose_l_release = trans(Pallet_Pose_l, alpha)
+        movel(Pallet_Pose_l_release)
+        gripper_release()
+        movel(Pallet_Pose_l_up)
+
     Global_0 = posj(0.00, -0.01, 90.02, -0.01, 89.99, 0.01)
 
     set_singular_handling()  # or pass a parameter if needed
@@ -184,6 +219,9 @@ def main(args=None):
     total_count = 9  # 3x3
 
     data = {}
+    data_group = {}
+
+
 
     while rclpy.ok():
         node.get_logger().info("Starting a pick-and-place cycle from Right Pallet -> Left Pallet...")
@@ -198,7 +236,7 @@ def main(args=None):
             Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, pallet_index)
 
             # Approach from above
-            delta = [0, 0, 60, 0, 0, 0]
+            delta = [0, 0, 50, 0, 0, 0]
             Pallet_Pose_r_up = trans(Pallet_Pose_r, delta)
             movel(Pallet_Pose_r_up)
 
@@ -221,28 +259,40 @@ def main(args=None):
 
             movel(Pallet_Pose_r_up)
 
+        # data 변환
+        node.get_logger().info(f"{data}\n")
+        data_group = sort_data_group(data)
+        node.get_logger().info(f"{data_group}\n")
+
+        ######## 5번 빼기
+        gripper_release()
+        Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, 4)
+        delta = [0, 0, 70, 0, 0, 0]
+        Pallet_Pose_r_up = trans(Pallet_Pose_r, delta)
+        # 접근 & 피킹
+        movel(Pallet_Pose_r_up)
+        movel(Pallet_Pose_r)
+        gripper_grip()
+        movel(Pallet_Pose_r_up)
+        # 왼쪽으로 이동
+        Pallet_Pose_l = get_pattern_point_3x3(pl00, pl02, pl22, pl20, 4)
+        Pallet_Pose_l_up = trans(Pallet_Pose_l, delta)
+        movel(Pallet_Pose_r_up)
+        movel(Pallet_Pose_l_up)
+        # 물건 배치 (조금 내려간 상태)
+        alpha = [0, 0, 10, 0, 0, 0]
+        Pallet_Pose_l_release = trans(Pallet_Pose_l, alpha)
+        movel(Pallet_Pose_l_release)
+        gripper_release()
+        movel(Pallet_Pose_l_up)
+        #####################
             
         node.get_logger().info("Starting a pick-and-place cycle from Right Pallet -> Left Pallet...")
 
         gripper_release()
-        # 높이 감지
-        try:
-            validate_heights(data)
-            sorted_data = sort_heights(data)
-            node.get_logger().info(f"Sorted data: {sorted_data}")
-        except ValueError as e:
-            node.get_logger().error(f"Height validation error: {e}")
-            break  # 에러 발생 시 루프 종료
-
-        # Pick and Place based on sorted heights
-        pick_and_place_sorted(sorted_data)
-
-        node.get_logger().info("Pick-and-place from Right Pallet -> Left Pallet done!")
-
         
         movej(Global_0)
         node.get_logger().info("One full cycle done! Looping again...\n")
-        node.get_logger().info(f"{data}\n")
         rclpy.spin_once(node, timeout_sec=0.1)
 
     node.get_logger().info("Shutting down node.")
