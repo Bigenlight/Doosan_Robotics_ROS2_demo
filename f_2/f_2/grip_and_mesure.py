@@ -74,6 +74,15 @@ def main(args=None):
         node.get_logger().info("Gripper closed")
         time.sleep(0.5)
 
+    def gripper_measure():
+        set_digital_output(1, ON)
+        set_digital_output(2, OFF)
+        node.get_logger().info("Measure...")
+        rclpy.spin_once(node, timeout_sec=0.5)
+        #wait_digital_input(sig_num=1, desired_state=True)
+        node.get_logger().info("Gripper closed")
+        time.sleep(0.5)
+    
     def gripper_release():
         set_digital_output(2, ON)
         set_digital_output(1, OFF)
@@ -96,7 +105,7 @@ def main(args=None):
         node.get_logger().info("grip & release")
         gripper_release()
         time.sleep(1)
-        gripper_grip()
+        gripper_measure()
 
 
     node.get_logger().info("Shutting down node.")

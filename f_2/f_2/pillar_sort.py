@@ -147,23 +147,23 @@ def main(args=None):
             # do two movel() calls or none if you prefer going directly:
             movel(Pallet_Pose_r_up)
 
-            ###### 뒤집기
-            switch_dir_right_up = trans(switch_dir_right, delta)
-            movel(switch_dir_right_up)
-            movel(switch_dir_right)
-            gripper_release()
-            movel(switch_dir_right_up)
+            # ###### 뒤집기
+            # switch_dir_right_up = trans(switch_dir_right, delta)
+            # movel(switch_dir_right_up)
+            # movel(switch_dir_right)
+            # gripper_release()
+            # movel(switch_dir_right_up)
 
-            # switch_dir_left_up = trans(switch_dir_left, delta)
-            # movel(switch_dir_left_up)
-            # movel(switch_dir_left)
-            movej(switch_dir_left_j1)
-            movej(switch_dir_left_j2)
-            gripper_grip()
-            movej(switch_dir_left_j1)
-            movej(switch_dir_left_j3)
-            movej(Global_0)
-            #######
+            # # switch_dir_left_up = trans(switch_dir_left, delta)
+            # # movel(switch_dir_left_up)
+            # # movel(switch_dir_left)
+            # movej(switch_dir_left_j1)
+            # movej(switch_dir_left_j2)
+            # gripper_grip()
+            # movej(switch_dir_left_j1)
+            # movej(switch_dir_left_j3)
+            # movej(Global_0)
+            # #######
 
             movel(Pallet_Pose_l_up)
 
