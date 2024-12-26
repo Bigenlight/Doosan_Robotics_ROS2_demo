@@ -79,7 +79,7 @@ def main(args=None):
         rclpy.spin_once(node, timeout_sec=0.5)
         wait_digital_input(sig_num=1, desired_state=True)
         node.get_logger().info("Gripper closed")
-        time.sleep(0.5)
+        time.sleep(0.2)
 
     def gripper_release():
         set_digital_output(2, ON)
@@ -88,7 +88,7 @@ def main(args=None):
         rclpy.spin_once(node, timeout_sec=0.1)
         wait_digital_input(sig_num=2, desired_state=True)
         node.get_logger().info("Gripper opened")
-        time.sleep(0.5)
+        time.sleep(0.2)
 
     def gripper_measure():
         set_digital_output(1, ON)
@@ -97,7 +97,7 @@ def main(args=None):
         rclpy.spin_once(node, timeout_sec=0.5)
         #wait_digital_input(sig_num=1, desired_state=True)
         node.get_logger().info("Gripper closed")
-        time.sleep(0.5)
+        time.sleep(0.3)
 
     def validate_heights(data):
         """
@@ -193,7 +193,7 @@ def main(args=None):
     set_singular_handling()  # or pass a parameter if needed
     set_velj(50.0)
     set_accj(50.0)
-    set_velx(70.0, 30.625)
+    set_velx(100.0, 30.625)
     set_accx(100.0, 50.5)
 
     # Right pallet corners
@@ -208,14 +208,7 @@ def main(args=None):
     pl22 = posx([398.0, 45.0,   21.61, 6.55,  -179.64, 6.31])
     pl20 = posx([398.0, 147.0,  21.61, 6.55,  -179.64, 6.31])
 
-    switch_dir_right =  posx([637.261, 21.246, 102.717, 91.62, 90.867, -89.742])
-    switch_dir_left =  posx([571.379, -11.415, 35.363, 90.057, -94.83, -93.092])
-    switch_dir_left_j1 = posj([19.256, 67.053, 4.966, 102.548, -119.048, -203.422])
-    switch_dir_left_j2 = posj([29.483, 75.225, 39.167, 101.148, -116.943, -152.729])
-    
-    switch_dir_left_j3 = posj([8.789, 35.952, 39.319, 64.225, 75.029, -209.713])
 
-    
     total_count = 9  # 3x3
 
     data = {}
@@ -230,7 +223,7 @@ def main(args=None):
         time.sleep(1)
 
         gripper_measure()
-        # Right -> Left
+        ### 높이 측정
         for pallet_index in range(total_count):
             node.get_logger().info(f"[Right -> Left] Picking object at index: {pallet_index}")
             Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, pallet_index)
@@ -242,7 +235,7 @@ def main(args=None):
 
             task_compliance_ctrl(stx=[500, 500, 500, 100, 100, 100])
             set_desired_force(fd=[0, 0, -20, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
-            while not check_force_condition(DR_AXIS_Z, max=10):
+            while not check_force_condition(DR_AXIS_Z, max=5):
                 pass
 
             # Get current pose and extract height
@@ -287,9 +280,96 @@ def main(args=None):
         movel(Pallet_Pose_l_up)
         #####################
 
-        switch_pillar(0,4)
-            
-        node.get_logger().info("Starting a pick-and-place cycle from Right Pallet -> Left Pallet...")
+        #data_group = {'0': 'm', '1': 'm', '2': 'l', '3': 's', '4': 's', '5': 'l', '6': 's', '7': 'm', '8': 'l'}
+        ############# 정렬 로직:
+        #result = []
+        if data_group['4'] == 's':
+            result = ['s', 's', 'm', 'm', 'n', 'm', 'l', 'l', 'l']
+        elif data_group['4'] == 'm':
+            result = ['s', 's', 's', 'm', 'n', 'm', 'l', 'l', 'l']
+        elif data_group['4'] == 'l':
+            result = ['s', 's', 's', 'm', 'n', 'm', 'm', 'l', 'l']
+        data_group['4'] = 'n'
+
+        current_index = 0
+        new_pallet_index = 0  # Left Pallet의 새로운 인덱스
+        
+        gripper_release()
+
+        for key, group in data_group.items():
+            i = 0
+            node.get_logger().info(f"Processing pallet_index {key} with height {group}")
+            if current_index == 4:
+                pass
+            elif data_group[key] == result[current_index]:
+                pass
+            elif data_group[key] == 'n':
+                target_list = [key for key, value in data_group.items() if value == result[current_index]]
+                switch_pillar(target_list[-1], str(current_index))
+                x = data_group[key]
+                data_group[key] = data_group[str(target_list[-1])]
+                data_group[str(target_list[-1])] = x
+                
+            else :
+                target_list = [key for key, value in data_group.items() if value == 'n']
+                switch_pillar(str(current_index), target_list[-1])
+                x = data_group[key]
+                data_group[key] = data_group[str(target_list[-1])]
+                data_group[str(target_list[-1])] = x
+                
+                target_list = [key for key, value in data_group.items() if value == result[current_index]]
+
+                # if current_index >= 6 and int(target_list[-1]) > current_index and int(target_list[-1]) <= 8:
+                #     switch_pillar(target_list[-1], str(current_index))
+                #     x = data_group[key]
+                #     data_group[key] = data_group[str(target_list[-1 + i])]
+                #     data_group[str(target_list[-1])] = x
+                #     current_index  += 1
+                #     pass
+                # if current_index >= 3 and current_index <= 5 and int(target_list[-1]) > current_index and int(target_list[-1]) <= 5:
+                #     i = 1
+                #     switch_pillar(target_list[-1], str(current_index))
+                #     x = data_group[key]
+                #     data_group[key] = data_group[str(target_list[-1 + i])]
+                #     data_group[str(target_list[-1])] = x
+                #     current_index  += 1
+                #     pass
+                switch_pillar(target_list[-1], str(current_index))
+                x = data_group[key]
+                data_group[key] = data_group[str(target_list[-1 + i])]
+                data_group[str(target_list[-1])] = x
+
+            current_index  += 1  # 다음 Left Pallet 위치로 이동
+
+        if  data_group['4'] != 'n':
+            target_list = [key for key, value in data_group.items() if value == 'n']
+            switch_pillar('4', target_list[0])
+            x = data_group[key]
+            data_group[key] = data_group[str(target_list[0])]
+            data_group[str(target_list[0])] = x
+        ################
+
+        ######## 5번 복구
+        gripper_release()
+        Pallet_Pose_l = get_pattern_point_3x3(pl00, pl02, pl22, pl20, 4)
+        delta = [0, 0, 70, 0, 0, 0]
+        Pallet_Pose_l_up = trans(Pallet_Pose_l, delta)
+        # 접근 & 피킹
+        movel(Pallet_Pose_l_up)
+        movel(Pallet_Pose_l)
+        gripper_grip()
+        movel(Pallet_Pose_l_up)
+        # 왼쪽으로 이동
+        Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, 4)
+        Pallet_Pose_r_up = trans(Pallet_Pose_r, delta)
+        movel(Pallet_Pose_r_up)
+        # 물건 배치 (조금 내려간 상태)
+        alpha = [0, 0, 10, 0, 0, 0]
+        Pallet_Pose_r_release = trans(Pallet_Pose_r, alpha)
+        movel(Pallet_Pose_r_release)
+        gripper_release()
+        movel(Pallet_Pose_r_up)
+        #####################
 
         gripper_release()
         
