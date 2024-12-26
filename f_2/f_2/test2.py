@@ -114,8 +114,8 @@ def main(args=None):
         keys = sorted(data.keys(), key=lambda x: int(x))  # data의 키를 숫자 순으로 정렬
         length = min(len(keys), len(ans))  # 길이 맞추기
 
-        node.get_logger().info(f"초기 데이터:", {data})
-        node.get_logger().info(f"정답 배열(ans):", ans)
+        node.get_logger().info(f"초기 데이터: {data}")
+        node.get_logger().info(f"정답 배열(ans):{ans}")
 
         switch_count = 0  # 스위치 횟수 카운트
 
