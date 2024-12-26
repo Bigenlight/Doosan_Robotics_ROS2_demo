@@ -3,8 +3,6 @@ import rclpy
 import DR_init
 import time
 
-from collections import Counter
-
 ROBOT_ID    = "dsr01"
 ROBOT_MODEL = "m0609"
 ON = 1
@@ -12,6 +10,154 @@ OFF = 0
 
 DR_init.__dsr__id    = ROBOT_ID
 DR_init.__dsr__model = ROBOT_MODEL
+
+from collections import Counter
+import time
+
+def create_ans_list_with_n(data):
+    """
+    주어진 data 딕셔너리의 값들을 기반으로 정답 배열(ans)을 생성합니다.
+    s, m, l의 개수를 세고, 's', 'm', 'l' 순서로 쌓은 뒤, 일정 간격(n_interval)마다 'n'을 삽입합니다.
+    """
+    counter = Counter(data.values())
+    ans = []
+    order = ['s', 'm', 'l']
+    
+    for item in order:
+        ans.extend([item] * counter.get(item, 0))
+
+    n_interval = 5
+    current_index = n_interval - 1  
+    while current_index < len(ans):
+        ans.insert(current_index, 'n')
+        current_index += n_interval + 1  
+    
+    return ans
+
+# 데이터 switch 함수 수정
+def switch_pillar_data(data_dict, key1, key2):
+    """
+    딕셔너리에서 두 키의 값을 교환하고, 교환된 데이터를 출력합니다.
+    
+    Parameters:
+    - data_dict: 값을 스위치할 딕셔너리
+    - key1: 첫 번째 키
+    - key2: 두 번째 키
+    """
+    data_dict[key1], data_dict[key2] = (
+        data_dict[key2],
+        data_dict[key1],
+    )
+    print(f"Switched keys '{key1}' and '{key2}': {data_dict}")
+
+# 실제 물리적으로 switch하는 함수
+def switch_pillar(key1, key2):
+    """
+    실제 물리적 스위치를 구현하는 함수입니다.
+    현재는 구현되지 않았으며, 필요한 로직을 추가해야 합니다.
+    
+    Parameters:
+    - key1: 첫 번째 키
+    - key2: 두 번째 키
+    """
+    # 실제 물리적 스위치 로직을 여기에 구현하세요.
+    pass  # 실제 로직을 구현하세요
+
+def reorder_data_to_answer_until_done(data, max_switches=100):
+    """
+    data 딕셔너리를 create_ans_list_with_n(data) 결과와 동일하게 만들기 위해
+    앞에서부터 검사 -> 스위치 -> 다시 검사... 를 전체가 맞을 때까지 반복합니다.
+    각 스위치가 발생할 때마다 현재 data의 상태를 출력합니다.
+    
+    Parameters:
+    - data: 값을 재정렬할 딕셔너리
+    - max_switches: 최대 스위치 횟수 (무한 루프 방지용)
+    """
+    ans = create_ans_list_with_n(data)
+    keys = sorted(data.keys(), key=lambda x: int(x))  # data의 키를 숫자 순으로 정렬
+    length = min(len(keys), len(ans))  # 길이 맞추기
+    
+    print("초기 데이터:", data)
+    print("정답 배열(ans):", ans)
+    
+    switch_count = 0  # 스위치 횟수 카운트
+    
+    for i in range(length):
+        while data[keys[i]] != ans[i]:
+            if switch_count >= max_switches:
+                print("\n[Error] 최대 스위치 횟수에 도달했습니다. 재정렬을 중단합니다.")
+                return data
+            
+            current_val = data[keys[i]]
+            target_val = ans[i]
+            
+            if current_val != 'n':
+                # 'n'을 찾아서 스위치
+                try:
+                    n_key = next(key for key, value in data.items() if value == 'n')
+                except StopIteration:
+                    print("\n[Error] 'n'을 찾지 못했습니다. 스위치하지 않습니다.")
+                    break  # 'n'이 없으면 더 이상 스위치할 수 없으므로 다음 인덱스로 넘어감
+                
+                print(f"\n[Switch] '{keys[i]}' (index {i}) with 'n' at '{n_key}' (index {keys.index(n_key)})")
+                switch_pillar(keys[i], n_key)  # 물리 스위치
+                switch_pillar_data(data, keys[i], n_key)  # 딕셔너리 스위치
+                switch_count += 1
+                time.sleep(1)  # 1초 딜레이 추가
+                
+            else:
+                # 현재 값이 'n'인 경우, ans[i]와 같은 값을 찾음
+                # ans[i]는 'n'이 아니므로, ans[i]가 있는 index를 찾음
+                desired_val = target_val
+                desired_key = None
+                for j in range(i+1, length):
+                    if data[keys[j]] == desired_val:
+                        desired_key = keys[j]
+                        break
+                
+                if desired_key is not None:
+                    # 'n'과 desired_key를 스위치
+                    try:
+                        n_key = next(key for key, value in data.items() if value == 'n')
+                    except StopIteration:
+                        print("\n[Error] 'n'을 찾지 못했습니다. 스위치하지 않습니다.")
+                        break  # 'n'이 없으면 더 이상 스위치할 수 없으므로 다음 인덱스로 넘어감
+                    
+                    print(f"\n[Switch] '{keys[i]}' (index {i}) with '{desired_key}' (index {keys.index(desired_key)})")
+                    switch_pillar(keys[i], desired_key)  # 물리 스위치
+                    switch_pillar_data(data, keys[i], desired_key)  # 딕셔너리 스위치
+                    switch_count += 1
+                    time.sleep(1)  # 1초 딜레이 추가
+                else:
+                    # 'n'과 교환할 target_val이 없으면, 5번째 요소와 스위치
+                    desired_index = 4
+                    if desired_index >= length:
+                        desired_index = length -1
+                        print(f"\n[Info] 원하는 인덱스 이후에 '{desired_val}'을 찾지 못했습니다. 마지막 인덱스({desired_index})와 스위치합니다.")
+                    else:
+                        print(f"\n[Info] 원하는 인덱스 이후에 '{desired_val}'을 찾지 못했습니다. 5번째 인덱스({desired_index})와 스위치합니다.")
+                    
+                    # 'n'을 찾음
+                    try:
+                        n_key = next(key for key, value in data.items() if value == 'n')
+                    except StopIteration:
+                        print("\n[Error] 'n'을 찾지 못했습니다. 스위치하지 않습니다.")
+                        break  # 'n'이 없으면 더 이상 스위치할 수 없으므로 다음 인덱스로 넘어감
+                    
+                    switch_pillar(keys[desired_index], n_key)  # 물리 스위치
+                    switch_pillar_data(data, keys[desired_index], n_key)  # 딕셔너리 스위치
+                    switch_count += 1
+                    time.sleep(1)  # 1초 딜레이 추가
+                
+    # 최종 확인
+    all_match = all(data[keys[i]] == ans[i] for i in range(length))
+    if all_match:
+        print("\n모든 데이터가 정답 배열과 일치합니다. 재정렬을 종료합니다.")
+    else:
+        print("\n[Error] 일부 데이터가 정답 배열과 일치하지 않습니다.")
+
+    return data
+
 
 def main(args=None):
     rclpy.init(args=args)
@@ -72,7 +218,7 @@ def main(args=None):
             if val == desired_state:
                 break
             time.sleep(period)
-            node.get_logger().info(f"Waiting for digital input #{sig_num} to be {desired_state}")
+            print(f"Waiting for digital input #{sig_num} to be {desired_state}")
 
     def gripper_grip():
         set_digital_output(1, ON)
@@ -97,6 +243,7 @@ def main(args=None):
         set_digital_output(2, OFF)
         node.get_logger().info("Measure...")
         rclpy.spin_once(node, timeout_sec=0.5)
+        #wait_digital_input(sig_num=1, desired_state=True)
         node.get_logger().info("Gripper closed")
         time.sleep(0.3)
 
@@ -115,223 +262,42 @@ def main(args=None):
         """
         sorted_data = dict(sorted(data.items(), key=lambda item: (item[1], int(item[0]))))
         return sorted_data
+    
 
     def sort_data_group(data):
-        """
-        높이를 's', 'm', 'l'로 그룹핑합니다.
-        """
         new_data = {}
         for key, height in data.items():
-            if 40 <= height <= 50:
+            if height >= 40 and height <= 50:
                 new_data[key] = 's'
-            elif 50 < height <= 60:
+            elif height >= 50 and height <= 60:
                 new_data[key] = 'm'
             else:
                 new_data[key] = 'l'
         return new_data
-
-    # 데이터 switch 함수 수정
-    def switch_pillar_data(data_dict, key1, key2):
-        """
-        딕셔너리에서 두 키의 값을 교환하고, 교환된 데이터를 출력합니다.
-        
-        Parameters:
-        - data_dict: 값을 스위치할 딕셔너리
-        - key1: 첫 번째 키
-        - key2: 두 번째 키
-        """
-        data_dict[key1], data_dict[key2] = (
-            data_dict[key2],
-            data_dict[key1],
-        )
-        node.get_logger().info(f"Switched keys '{key1}' and '{key2}': {data_dict}")
-
-    # 실제 물리적으로 switch하는 함수
-    def switch_pillar(key1, key2):
-        """
-        실제 물리적 스위치를 구현하는 함수입니다.
-        현재는 구현되지 않았으며, 필요한 로직을 추가해야 합니다.
-        
-        Parameters:
-        - key1: 첫 번째 키
-        - key2: 두 번째 키
-        """
-        node.get_logger().info(f"Physically switching '{key1}' with '{key2}'")
-        # 실제 물리적 스위치 로직을 여기에 구현하세요.
-        # 예시:
-        # gripper_release()
-        # Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, int(key1))
-        # delta = [0, 0, 70, 0, 0, 0]
-        # Pallet_Pose_r_up = trans(Pallet_Pose_r, delta)
-        # movel(Pallet_Pose_r_up)
-        # movel(Pallet_Pose_r)
-        # gripper_grip()
-        # movel(Pallet_Pose_r_up)
-        # Pallet_Pose_l = get_pattern_point_3x3(pl00, pl02, pl22, pl20, int(key2))
-        # Pallet_Pose_l_up = trans(Pallet_Pose_l, delta)
-        # movel(Pallet_Pose_r_up)
-        # movel(Pallet_Pose_l_up)
-        # alpha = [0, 0, 10, 0, 0, 0]
-        # Pallet_Pose_l_release = trans(Pallet_Pose_l, alpha)
-        # movel(Pallet_Pose_l_release)
-        # gripper_release()
-        # movel(Pallet_Pose_l_up)
-        pass  # 실제 로직을 구현하세요
-
-    def create_ans_list_with_n(data):
-        """
-        주어진 data 딕셔너리의 값들을 기반으로 정답 배열(ans)을 생성합니다.
-        s, m, l의 개수를 세고, 's', 'm', 'l' 순서로 쌓은 뒤, 일정 간격(n_interval)마다 'n'을 삽입합니다.
-        """
-        counter = Counter(data.values())
-        ans = []
-        order = ['s', 'm', 'l']
-        
-        for item in order:
-            ans.extend([item] * counter.get(item, 0))
-
-        n_interval = 5
-        current_index = n_interval - 1  
-        while current_index < len(ans):
-            ans.insert(current_index, 'n')
-            current_index += n_interval + 1  
-        
-        return ans
-
-    def reorder_data_to_answer_until_done(data, max_switches=100):
-        """
-        data 딕셔너리를 create_ans_list_with_n(data) 결과와 동일하게 만들기 위해
-        앞에서부터 검사 -> 스위치 -> 다시 검사... 를 전체가 맞을 때까지 반복합니다.
-        각 스위치가 발생할 때마다 현재 data의 상태를 출력합니다.
-        
-        Parameters:
-        - data: 값을 재정렬할 딕셔너리
-        - max_switches: 최대 스위치 횟수 (무한 루프 방지용)
-        """
-        ans = create_ans_list_with_n(data)
-        keys = sorted(data.keys(), key=lambda x: int(x))  # data의 키를 숫자 순으로 정렬
-        length = min(len(keys), len(ans))  # 길이 맞추기
-
-        node.get_logger().info(f"초기 데이터: {data}")
-        node.get_logger().info(f"정답 배열(ans): {ans}")
-
-        switch_count = 0  # 스위치 횟수 카운트
-        last_swapped_key = None  # 이전에 스위치한 키를 저장
-
-        for i in range(length):
-            while data[keys[i]] != ans[i]:
-                if switch_count >= max_switches:
-                    node.get_logger().error("\n[Error] 최대 스위치 횟수에 도달했습니다. 재정렬을 중단합니다.")
-                    return data
-
-                current_val = data[keys[i]]
-                target_val = ans[i]
-
-                # 'n'의 현재 위치 찾기
-                try:
-                    n_key = next(key for key, value in data.items() if value == 'n')
-                except StopIteration:
-                    node.get_logger().error("\n[Error] 'n'을 찾지 못했습니다. 스위치하지 않습니다.")
-                    break  # 'n'이 없으면 더 이상 스위치할 수 없으므로 다음 인덱스로 넘어감
-
-                if current_val != 'n':
-                    # 이전에 스위치한 키와 같지 않은 경우에만 스위치
-                    if keys[i] == last_swapped_key:
-                        node.get_logger().info(f"\n[Info] '{keys[i]}'은(는) 이미 마지막에 스위치되었습니다. 건너뜁니다.")
-                        break
-
-                    # 'n'과 현재 값을 교환
-                    node.get_logger().info(f"\n[Switch] '{keys[i]}' (index {i}) with 'n' at '{n_key}' (index {keys.index(n_key)})")
-                    switch_pillar(keys[i], n_key)  # 물리 스위치
-                    switch_pillar_data(data, keys[i], n_key)  # 딕셔너리 스위치
-                    switch_count += 1
-                    last_swapped_key = keys[i]  # 이전 스위치한 키 업데이트
-                    time.sleep(1)  # 1초 딜레이 추가
-
-                else:
-                    # 현재 값이 'n'인 경우, ans[i]와 같은 값을 찾음
-                    # ans[i]는 'n'이 아니므로, ans[i]가 있는 index를 찾음
-                    desired_val = target_val
-                    desired_key = None
-                    for j in range(i+1, length):
-                        if data[keys[j]] == desired_val:
-                            desired_key = keys[j]
-                            break
-
-                    if desired_key is not None:
-                        # 'n'과 desired_key를 스위치
-                        node.get_logger().info(f"\n[Switch] '{keys[i]}' (index {i}) with '{desired_key}' (index {keys.index(desired_key)})")
-                        switch_pillar(n_key, desired_key)  # 물리 스위치
-                        switch_pillar_data(data, n_key, desired_key)  # 딕셔너리 스위치
-                        switch_count += 1
-                        time.sleep(1)  # 1초 딜레이 추가
-                    else:
-                        # 'n'과 교환할 target_val이 없으면, 5번째 인덱스(인덱스4)와 스위치
-                        desired_index = 4
-                        if desired_index >= length:
-                            desired_index = length - 1
-                            node.get_logger().info(f"\n[Info] 원하는 인덱스 이후에 '{desired_val}'을 찾지 못했습니다. 마지막 인덱스({desired_index})와 스위치합니다.")
-                        else:
-                            node.get_logger().info(f"\n[Info] 원하는 인덱스 이후에 '{desired_val}'을 찾지 못했습니다. 5번째 인덱스({desired_index})와 스위치합니다.")
-
-                        # 'n'을 찾음
-                        try:
-                            n_key = next(key for key, value in data.items() if value == 'n')
-                        except StopIteration:
-                            node.get_logger().error("\n[Error] 'n'을 찾지 못했습니다. 스위치하지 않습니다.")
-                            break  # 'n'이 없으면 더 이상 스위치할 수 없으므로 다음 인덱스로 넘어감
-
-                        switch_pillar(keys[desired_index], n_key)  # 물리 스위치
-                        switch_pillar_data(data, keys[desired_index], n_key)  # 딕셔너리 스위치
-                        switch_count += 1
-                        time.sleep(1)  # 1초 딜레이 추가
-
-        # 최종 확인
-        all_match = all(data[keys[i]] == ans[i] for i in range(length))
-        if all_match:
-            node.get_logger().info("\n모든 데이터가 정답 배열과 일치합니다. 재정렬을 종료합니다.")
-        else:
-            node.get_logger().error("\n[Error] 일부 데이터가 정답 배열과 일치하지 않습니다.")
-
-        return data
-
-    def pick_and_place_sorted(sorted_data):
-        """
-        정렬된 데이터를 기반으로 pick-and-place 작업을 수행합니다.
-        Left Pallet에 배치할 때 pallet_index를 0부터 순차적으로 증가시킵니다.
-        """
-        new_pallet_index = 0  # Left Pallet의 새로운 인덱스
-
+                
+    def switch_pillar(current_index, switching_index):
+        current_index = int(current_index)
+        switching_index = int(switching_index)
         gripper_release()
-
-        for key, group in sorted_data.items():
-            node.get_logger().info(f"Processing pallet_index {key} with group {group}")
-
-            # 원래 pallet_index는 key, 새로운 인덱스는 new_pallet_index
-            # Left Pallet의 위치를 새로운 인덱스로 설정
-            int_key = int(key)
-            Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, int_key)
-            Pallet_Pose_r_up = trans(Pallet_Pose_r, [0, 0, 70, 0, 0, 0])
-
-            # Approach from above
-            movel(Pallet_Pose_r_up)
-            movel(Pallet_Pose_r)
-
-            # Gripper을 사용하여 물체 집기
-            gripper_grip()
-
-            Pallet_Pose_l = get_pattern_point_3x3(pl00, pl02, pl22, pl20, new_pallet_index)
-            delta = [0, 0, 70, 0, 0, 0]
-            Pallet_Pose_l_up = trans(Pallet_Pose_l, delta)
-            movel(Pallet_Pose_r_up)
-            # 이동 후 그리퍼 열기
-            movel(Pallet_Pose_l_up)
-            movel(Pallet_Pose_l)
-            gripper_release()
-            time.sleep(0.2)
-            movel(Pallet_Pose_l_up)
-
-            new_pallet_index += 1  # 다음 Left Pallet 위치로 이동
+        Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, current_index)
+        delta = [0, 0, 70, 0, 0, 0]
+        Pallet_Pose_r_up = trans(Pallet_Pose_r, delta)
+        # 접근 & 피킹
+        movel(Pallet_Pose_r_up)
+        movel(Pallet_Pose_r)
+        gripper_grip()
+        movel(Pallet_Pose_r_up)
+        # 왼쪽으로 이동
+        Pallet_Pose_l = get_pattern_point_3x3(pr00, pr02, pr22, pr20, switching_index)
+        Pallet_Pose_l_up = trans(Pallet_Pose_l, delta)
+        movel(Pallet_Pose_r_up)
+        movel(Pallet_Pose_l_up)
+        # 물건 배치 (조금 내려간 상태)
+        alpha = [0, 0, 10, 0, 0, 0]
+        Pallet_Pose_l_release = trans(Pallet_Pose_l, alpha)
+        movel(Pallet_Pose_l_release)
+        gripper_release()
+        movel(Pallet_Pose_l_up)
 
     Global_0 = posj(0.00, -0.01, 90.02, -0.01, 89.99, 0.01)
 
@@ -359,6 +325,8 @@ def main(args=None):
     data = {}
     data_group = {}
 
+
+
     while rclpy.ok():
         node.get_logger().info("Starting a pick-and-place cycle from Right Pallet -> Left Pallet...")
         gripper_release()
@@ -367,7 +335,6 @@ def main(args=None):
 
         gripper_measure()
         ### 높이 측정
-        data.clear()
         for pallet_index in range(total_count):
             node.get_logger().info(f"[Right -> Left] Picking object at index: {pallet_index}")
             Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, pallet_index)
@@ -377,7 +344,7 @@ def main(args=None):
             Pallet_Pose_r_up = trans(Pallet_Pose_r, delta)
             movel(Pallet_Pose_r_up)
 
-            task_compliance_ctrl(stx=[500, 500, 500, 100, 100, 100])
+            task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
             set_desired_force(fd=[0, 0, -20, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
             while not check_force_condition(DR_AXIS_Z, max=5):
                 pass
@@ -388,16 +355,18 @@ def main(args=None):
             height = pose[2]
             data[str(pallet_index)] = height
 
+        
+
             # Release compliance control
             release_compliance_ctrl()
             node.get_logger().info(f"Completed measurement for index {pallet_index}")
 
             movel(Pallet_Pose_r_up)
 
-        # 데이터 변환
-        node.get_logger().info(f"Measured heights: {data}\n")
+        # data 변환
+        node.get_logger().info(f"{data}\n")
         data_group = sort_data_group(data)
-        node.get_logger().info(f"Grouped data: {data_group}\n")
+        node.get_logger().info(f"{data_group}\n")
 
         ######## 5번 빼기
         gripper_release()
@@ -422,21 +391,10 @@ def main(args=None):
         movel(Pallet_Pose_l_up)
         #####################
 
-        # 데이터 그룹에서 '4'를 'n'으로 설정
-        if '4' in data_group:
-            original_val = data_group['4']
-            data_group['4'] = 'n'
-            node.get_logger().info(f"Set index '4' to 'n': {data_group}\n")
-        else:
-            node.get_logger().info("Index '4' not found in data_group.\n")
+        gripper_release()
+        reorder_data_to_answer_until_done(data_group)
 
-        # 정렬 로직 통합
-        sorted_data = reorder_data_to_answer_until_done(data_group)
-        node.get_logger().info(f"Sorted data: {sorted_data}\n")
-
-        pick_and_place_sorted(sorted_data)
-
-        # 5번 복구
+        ######## 5번 복구
         gripper_release()
         Pallet_Pose_l = get_pattern_point_3x3(pl00, pl02, pl22, pl20, 4)
         delta = [0, 0, 70, 0, 0, 0]
@@ -459,7 +417,7 @@ def main(args=None):
         #####################
 
         gripper_release()
-
+        
         movej(Global_0)
         node.get_logger().info("One full cycle done! Looping again...\n")
         rclpy.spin_once(node, timeout_sec=0.1)
