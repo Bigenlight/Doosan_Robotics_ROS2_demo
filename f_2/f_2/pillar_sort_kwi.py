@@ -335,7 +335,7 @@ def main(args=None):
         movej(Global_0)
         time.sleep(1)
 
-        # gripper_measure()
+        gripper_measure()
         ### 높이 측정
         for pallet_index in range(total_count):
             node.get_logger().info(f"[Right -> Left] Picking object at index: {pallet_index}")
