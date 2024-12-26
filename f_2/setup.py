@@ -23,6 +23,7 @@ setup(
             "grip_and_mesure=f_2.grip_and_mesure:main",
             "moving=f_2.moving:main",
             "test=f_2.test:main",
+            "pillar_5=f_2.pillar_5:main",
         ],
     },
 )
