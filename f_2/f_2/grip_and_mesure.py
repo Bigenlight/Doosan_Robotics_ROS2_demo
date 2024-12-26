@@ -22,6 +22,11 @@ def main(args=None):
             set_tcp,
             set_digital_output,
             get_digital_input,
+            task_compliance_ctrl,
+            set_desired_force,
+            check_force_condition,
+            release_compliance_ctrl,
+            get_current_posx,
             movej,
             movel,
             # movesx,  # We won't use movesx
@@ -31,6 +36,8 @@ def main(args=None):
             set_velx,
             set_accx,
             trans,
+            DR_AXIS_Z,
+            DR_FC_MOD_REL,
         )
         from DR_common2 import (posj, posx)
 
@@ -102,10 +109,26 @@ def main(args=None):
     set_accx(100.0, 50.5)
 
     while rclpy.ok():
+        node.get_logger().info("move to home")
+        movej(Global_0)
+
+        time.sleep(1)
         node.get_logger().info("grip & release")
         gripper_release()
         time.sleep(1)
         gripper_measure()
+
+        task_compliance_ctrl(stx=[500, 500, 500, 100, 100, 100])
+        set_desired_force(fd=[0, 0, -20, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
+        while not check_force_condition(DR_AXIS_Z, max=10):
+            pass
+        pose, status = get_current_posx()
+        height = pose[2]
+
+        node.get_logger().info(f"results: {height}")
+
+        release_compliance_ctrl()
+
 
 
     node.get_logger().info("Shutting down node.")
