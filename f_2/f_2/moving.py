@@ -128,7 +128,7 @@ def main(args=None):
         new_pallet_index = 0  # Left Pallet의 새로운 인덱스
         
         gripper_release()
-        
+
         for key, height in sorted_data.items():
             node.get_logger().info(f"Processing pallet_index {key} with height {height}")
 
@@ -151,7 +151,10 @@ def main(args=None):
             movel(Pallet_Pose_r_up)
             # 이동 후 그리퍼 열기
             movel(Pallet_Pose_l_up)
+            movel(Pallet_Pose_l)
             gripper_release()
+            time.sleep(0.2)
+            movel(Pallet_Pose_l_up)
 
             new_pallet_index += 1  # 다음 Left Pallet 위치로 이동
 
