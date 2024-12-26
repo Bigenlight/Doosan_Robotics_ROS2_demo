@@ -336,64 +336,63 @@ def main(args=None):
         time.sleep(1)
 
         # gripper_measure()
-        # ### 높이 측정
-        # for pallet_index in range(total_count):
-        #     node.get_logger().info(f"[Right -> Left] Picking object at index: {pallet_index}")
-        #     Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, pallet_index)
+        ### 높이 측정
+        for pallet_index in range(total_count):
+            node.get_logger().info(f"[Right -> Left] Picking object at index: {pallet_index}")
+            Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, pallet_index)
 
-        #     # Approach from above
-        #     delta = [0, 0, 50, 0, 0, 0]
-        #     Pallet_Pose_r_up = trans(Pallet_Pose_r, delta)
-        #     movel(Pallet_Pose_r_up)
+            # Approach from above
+            delta = [0, 0, 50, 0, 0, 0]
+            Pallet_Pose_r_up = trans(Pallet_Pose_r, delta)
+            movel(Pallet_Pose_r_up)
 
-        #     task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
-        #     set_desired_force(fd=[0, 0, -20, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
-        #     while not check_force_condition(DR_AXIS_Z, max=5):
-        #         pass
+            task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
+            set_desired_force(fd=[0, 0, -20, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
+            while not check_force_condition(DR_AXIS_Z, max=5):
+                pass
 
-        #     # Get current pose and extract height
-        #     current_pose = get_current_posx()
-        #     pose, status = current_pose
-        #     height = pose[2]
-        #     data[str(pallet_index)] = height
+            # Get current pose and extract height
+            current_pose = get_current_posx()
+            pose, status = current_pose
+            height = pose[2]
+            data[str(pallet_index)] = height
 
         
 
-        #     # Release compliance control
-        #     release_compliance_ctrl()
-        #     node.get_logger().info(f"Completed measurement for index {pallet_index}")
+            # Release compliance control
+            release_compliance_ctrl()
+            node.get_logger().info(f"Completed measurement for index {pallet_index}")
 
-        #     movel(Pallet_Pose_r_up)
+            movel(Pallet_Pose_r_up)
 
-        # # data 변환
-        # node.get_logger().info(f"{data}\n")
-        # data_group = sort_data_group(data)
-        # node.get_logger().info(f"{data_group}\n")
-        # data_group['4'] = 'n'
+        # data 변환
+        node.get_logger().info(f"{data}\n")
+        data_group = sort_data_group(data)
+        node.get_logger().info(f"{data_group}\n")
+        data_group['4'] = 'n'
 
-        # ######## 5번 빼기
-        # gripper_release()
-        # Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, 4)
-        # delta = [0, 0, 70, 0, 0, 0]
-        # Pallet_Pose_r_up = trans(Pallet_Pose_r, delta)
-        # # 접근 & 피킹
-        # movel(Pallet_Pose_r_up)
-        # movel(Pallet_Pose_r)
-        # gripper_grip()
-        # movel(Pallet_Pose_r_up)
-        # # 왼쪽으로 이동
-        # Pallet_Pose_l = get_pattern_point_3x3(pl00, pl02, pl22, pl20, 4)
-        # Pallet_Pose_l_up = trans(Pallet_Pose_l, delta)
-        # movel(Pallet_Pose_r_up)
-        # movel(Pallet_Pose_l_up)
-        # # 물건 배치 (조금 내려간 상태)
-        # alpha = [0, 0, 10, 0, 0, 0]
-        # Pallet_Pose_l_release = trans(Pallet_Pose_l, alpha)
-        # movel(Pallet_Pose_l_release)
-        # gripper_release()
-        # movel(Pallet_Pose_l_up)
+        ######## 5번 빼기
+        gripper_release()
+        Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, 4)
+        delta = [0, 0, 70, 0, 0, 0]
+        Pallet_Pose_r_up = trans(Pallet_Pose_r, delta)
+        # 접근 & 피킹
+        movel(Pallet_Pose_r_up)
+        movel(Pallet_Pose_r)
+        gripper_grip()
+        movel(Pallet_Pose_r_up)
+        # 왼쪽으로 이동
+        Pallet_Pose_l = get_pattern_point_3x3(pl00, pl02, pl22, pl20, 4)
+        Pallet_Pose_l_up = trans(Pallet_Pose_l, delta)
+        movel(Pallet_Pose_r_up)
+        movel(Pallet_Pose_l_up)
+        # 물건 배치 (조금 내려간 상태)
+        alpha = [0, 0, 10, 0, 0, 0]
+        Pallet_Pose_l_release = trans(Pallet_Pose_l, alpha)
+        movel(Pallet_Pose_l_release)
+        gripper_release()
+        movel(Pallet_Pose_l_up)
         #####################
-        data_group = {'0': 'l', '1': 's', '2': 'm', '3': 'm', '4': 'n', '5': 's', '6': 'l', '7': 's', '8': 'l'}
         gripper_release()
         reorder_data_to_answer_until_done(data_group)
 
