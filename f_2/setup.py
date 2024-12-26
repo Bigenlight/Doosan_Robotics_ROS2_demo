@@ -20,6 +20,7 @@ setup(
     entry_points={
         "console_scripts": [
             "pillar_sort=f_2.pillar_sort:main"
+            "grip_and_mesure=f_2.grip_and_mesure:main"
         ],
     },
 )
