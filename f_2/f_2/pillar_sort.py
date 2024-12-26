@@ -143,7 +143,7 @@ def main(args=None):
             Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, pallet_index)
 
             # Approach from above
-            delta = [0, 0, 70, 0, 0, 0]
+            delta = [0, 0, 60, 0, 0, 0]
             Pallet_Pose_r_up = trans(Pallet_Pose_r, delta)
             movel(Pallet_Pose_r_up)
 

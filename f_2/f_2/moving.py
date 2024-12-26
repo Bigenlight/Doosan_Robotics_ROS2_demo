@@ -126,7 +126,9 @@ def main(args=None):
         Left Pallet에 배치할 때 pallet_index를 0부터 순차적으로 증가시킵니다.
         """
         new_pallet_index = 0  # Left Pallet의 새로운 인덱스
-
+        
+        gripper_release()
+        
         for key, height in sorted_data.items():
             node.get_logger().info(f"Processing pallet_index {key} with height {height}")
 
