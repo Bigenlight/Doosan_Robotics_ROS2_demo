@@ -115,43 +115,6 @@ def main(args=None):
         sorted_data = dict(sorted(data.items(), key=lambda item: (item[1], int(item[0]))))
         return sorted_data
     
-    def pick_and_place_sorted(sorted_data):
-        """
-        정렬된 데이터를 기반으로 pick-and-place 작업을 수행합니다.
-        Left Pallet에 배치할 때 pallet_index를 0부터 순차적으로 증가시킵니다.
-        """
-        new_pallet_index = 0  # Left Pallet의 새로운 인덱스
-        
-        gripper_release()
-
-        for key, height in sorted_data.items():
-            node.get_logger().info(f"Processing pallet_index {key} with height {height}")
-
-            # 원래 pallet_index는 key, 새로운 인덱스는 new_pallet_index
-            # Left Pallet의 위치를 새로운 인덱스로 설정
-            int_key = int(key)
-            Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, int_key)
-            Pallet_Pose_r_up = trans(Pallet_Pose_r, [0, 0, 70, 0, 0, 0])
-
-            # Approach from above
-            movel(Pallet_Pose_r_up)
-            movel(Pallet_Pose_r)
-
-            # Gripper을 사용하여 물체 집기
-            gripper_grip()
-
-            Pallet_Pose_l = get_pattern_point_3x3(pl00, pl02, pl22, pl20, new_pallet_index)
-            delta = [0,0,70,0,0,0]
-            Pallet_Pose_l_up = trans(Pallet_Pose_l, delta)
-            movel(Pallet_Pose_r_up)
-            # 이동 후 그리퍼 열기
-            movel(Pallet_Pose_l_up)
-            movel(Pallet_Pose_l)
-            gripper_release()
-            time.sleep(0.2)
-            movel(Pallet_Pose_l_up)
-
-            new_pallet_index += 1  # 다음 Left Pallet 위치로 이동
 
     def sort_data_group(data):
         new_data = {}
@@ -233,7 +196,7 @@ def main(args=None):
             Pallet_Pose_r_up = trans(Pallet_Pose_r, delta)
             movel(Pallet_Pose_r_up)
 
-            task_compliance_ctrl(stx=[500, 500, 500, 100, 100, 100])
+            task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
             set_desired_force(fd=[0, 0, -20, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
             while not check_force_condition(DR_AXIS_Z, max=5):
                 pass
@@ -281,7 +244,8 @@ def main(args=None):
         #####################
 
         #data_group = {'0': 'm', '1': 'm', '2': 'l', '3': 's', '4': 's', '5': 'l', '6': 's', '7': 'm', '8': 'l'}
-        ############# 정렬 로직:
+
+        ############# 정렬 로직 시작
         #result = []
         if data_group['4'] == 's':
             result = ['s', 's', 'm', 'm', 'n', 'm', 'l', 'l', 'l']
@@ -352,7 +316,7 @@ def main(args=None):
             x = data_group[key]
             data_group[key] = data_group[str(target_list[0])]
             data_group[str(target_list[0])] = x
-        ################
+        ################ 정렬 로직 끝
 
         ######## 5번 복구
         gripper_release()
