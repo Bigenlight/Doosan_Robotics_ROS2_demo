@@ -24,6 +24,7 @@ setup(
             "moving=f_2.moving:main",
             "test=f_2.test:main",
             "pillar_5=f_2.pillar_5:main",
+            "test2=f_2.test2:main",
         ],
     },
 )
