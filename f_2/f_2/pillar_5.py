@@ -305,10 +305,13 @@ def main(args=None):
                 pass
             elif data_group[key] == 'n':
                 target_list = [key for key, value in data_group.items() if value == result[current_index]]
-                switch_pillar(target_list[-1], str(current_index))
+                while target_list[-1 - i] == result[int(target_list[-1 - i])]:
+                    i += 1
+
+                switch_pillar(target_list[-1 - i], str(current_index))
                 x = data_group[key]
-                data_group[key] = data_group[str(target_list[-1])]
-                data_group[str(target_list[-1])] = x
+                data_group[key] = data_group[str(target_list[-1 - i])]
+                data_group[str(target_list[-1 - i])] = x
                 
             else :
                 target_list = [key for key, value in data_group.items() if value == 'n']
@@ -318,6 +321,8 @@ def main(args=None):
                 data_group[str(target_list[-1])] = x
                 
                 target_list = [key for key, value in data_group.items() if value == result[current_index]]
+                while target_list[-1 - i] == result[int(target_list[-1 - i])]:
+                    i += 1
 
                 # if current_index >= 6 and int(target_list[-1]) > current_index and int(target_list[-1]) <= 8:
                 #     switch_pillar(target_list[-1], str(current_index))
@@ -334,10 +339,10 @@ def main(args=None):
                 #     data_group[str(target_list[-1])] = x
                 #     current_index  += 1
                 #     pass
-                switch_pillar(target_list[-1], str(current_index))
+                switch_pillar(target_list[-1 - i], str(current_index))
                 x = data_group[key]
-                data_group[key] = data_group[str(target_list[-1 + i])]
-                data_group[str(target_list[-1])] = x
+                data_group[key] = data_group[str(target_list[-1 - i])]
+                data_group[str(target_list[-1 - i])] = x
 
             current_index  += 1  # 다음 Left Pallet 위치로 이동
 
