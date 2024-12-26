@@ -369,6 +369,7 @@ def main(args=None):
         node.get_logger().info(f"{data}\n")
         data_group = sort_data_group(data)
         node.get_logger().info(f"{data_group}\n")
+        data_group['4'] = 'n'
 
         ######## 5번 빼기
         gripper_release()
