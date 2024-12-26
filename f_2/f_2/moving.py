@@ -132,7 +132,7 @@ def main(args=None):
 
             # 원래 pallet_index는 key, 새로운 인덱스는 new_pallet_index
             # Left Pallet의 위치를 새로운 인덱스로 설정
-            Pallet_Pose_r = get_pattern_point_3x3(pl00, pl02, pl22, pl20, new_pallet_index)
+            Pallet_Pose_r = get_pattern_point_3x3(pr00, pr02, pr22, pr20, new_pallet_index)
             Pallet_Pose_r_up = trans(Pallet_Pose_r, [0, 0, 70, 0, 0, 0])
 
             # Approach from above
