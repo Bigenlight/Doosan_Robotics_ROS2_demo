@@ -98,7 +98,7 @@ def main(args=None):
 
 
     domino_length = 0
-
+    domino_point = []
     while rclpy.ok():
         node.get_logger().info("Starting Domino ...")
         gripper_release()
@@ -111,7 +111,7 @@ def main(args=None):
             
             #### 도미노 하나 짚기
             delta = [0, 0, 100, 0, 0, 0]
-            alpha = [0, i * 10, 0, 0, 0, 0]
+            alpha = [0, i * 16.60, 0, 0, 0, 0]
             right_point = trans(right_start_point, alpha)
             #node.get_logger().info(f"연산 : {right_point}, 타입: {type(right_point)}\n")
             right_point = right_point.tolist()
@@ -124,18 +124,26 @@ def main(args=None):
 
             gripper_grip()
 
-            gamma = [0, i * 30, 0, 0, 0, 0]
-            domino_point = trans(domino_starting_point, gamma).tolist()
-            domino_point_up = trans(posx(domino_point), delta).tolist()
-            movesx([
-                posx(right_point_up ),
-                posx(domino_point_up),
-                posx(domino_point)
-            ], ref=0)
+            if domino_length <= 2:
+                gamma = [0, i * 40, 0, 0, 0, 0]
+                domino_point = trans(domino_starting_point, gamma).tolist()
+                domino_point_up = trans(posx(domino_point), delta).tolist()
+                movesx([
+                    posx(right_point_up ),
+                    posx(domino_point_up),
+                    posx(domino_point)
+                ], ref=0)
+            else:
+                theta = [20, 20, 0, 0, 0, 0]
+                domino_point
+
+
 
             gripper_release()
 
+            movel(posx(domino_point_up))
 
+            domino_length += 1
     
         
         gripper_release()
@@ -150,3 +158,9 @@ def main(args=None):
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+

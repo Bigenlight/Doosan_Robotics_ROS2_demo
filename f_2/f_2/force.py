@@ -157,9 +157,9 @@ def main(args=None):
         ##################################################################
         node.get_logger().info("오른쪽(+Y) 힘 제어를 시작합니다.")
         task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
-        set_desired_force(fd=[0, 1, 0, 0, 0, 0], dir=[0, 1, 0, 0, 0, 0], mod=DR_FC_MOD_REL)
+        set_desired_force(fd=[0, 15, 0, 0, 0, 0], dir=[0, 1, 0, 0, 0, 0], mod=DR_FC_MOD_REL)
 
-        while not check_force_condition(DR_AXIS_Y, max=1.5):
+        while not check_force_condition(DR_AXIS_Y, max=3.0):
             time.sleep(0.1)
 
         current_pose_r2l = get_current_posx()
@@ -193,9 +193,9 @@ def main(args=None):
         ##################################################################
         node.get_logger().info("왼쪽(-Y) 힘 제어를 시작합니다.")
         task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
-        set_desired_force(fd=[0, -1, 0, 0, 0, 0], dir=[0, 1, 0, 0, 0, 0], mod=DR_FC_MOD_REL)
+        set_desired_force(fd=[0, -15, 0, 0, 0, 0], dir=[0, 1, 0, 0, 0, 0], mod=DR_FC_MOD_REL)
 
-        while not check_force_condition(DR_AXIS_Y, max=1.5):
+        while not check_force_condition(DR_AXIS_Y, max=3.0):
             time.sleep(0.1)
 
         current_pose_l2r = get_current_posx()
