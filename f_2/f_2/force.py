@@ -193,7 +193,7 @@ def main(args=None):
                 break
             time.sleep(period)
             print(f"Waiting for digital input #{sig_num} to be {desired_state}")
-            
+
     def gripper_grip():
         set_digital_output(1, ON)
         set_digital_output(2, OFF)
@@ -330,7 +330,6 @@ def main(args=None):
 
             # 높이 측정
             gripper_measure()
-            measure_heights(total_count, pr00, pr02, pr22, pr20, data)
 
             # 데이터 변환 및 그룹화
             node.get_logger().info(f"{data}\n")
