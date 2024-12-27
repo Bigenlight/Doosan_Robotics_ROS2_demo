@@ -134,10 +134,17 @@ def main(args=None):
                     posx(domino_point)
                 ], ref=0)
             else:
+                movesx([
+                    posx(right_point_up ),
+                    posx(domino_point_up)
+                ], ref=0)
                 theta = [20, 20, 0, 0, 0, 0]
-                domino_point
-
-
+                domino_point = trans(domino_point, theta).tolist()
+                domino_point_up = trans(posx(domino_point), delta).tolist()
+                movesx([
+                    posx(domino_point_up),
+                    posx(domino_point)
+                ], ref=0)
 
             gripper_release()
 

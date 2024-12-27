@@ -160,7 +160,7 @@ def main(args=None):
         node.get_logger().info("로봇이 +Y 방향으로 이동 중...")
 
         # Y축 힘이 2.5N 이상이면 충돌로 보고 멈춘다(예시)
-        while not check_force_condition(DR_AXIS_Y, max=2.5):
+        while not check_force_condition(DR_AXIS_Y, max=5.0):
             time.sleep(0.05)
 
         # 최종 위치 (힘으로 멈춘 지점)
