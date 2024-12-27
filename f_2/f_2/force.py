@@ -79,9 +79,9 @@ def main(args=None):
     left_fixed_pose = posx(left_fixed_pose_list)
 
     ######################################################################
-    # 나무 블록 두께(16.75 mm)
+    # 나무 블록 두께(15.1976 mm)
     ######################################################################
-    BLOCK_THICKNESS_MM = 16.75
+    BLOCK_THICKNESS_MM = 15.1976
 
     ######################################################################
     # 3. 디지털 IO 및 그리퍼 함수
@@ -176,7 +176,7 @@ def main(args=None):
         measured_distance_mm = abs(left_fixed_pose_list[1] - final_pose_data[1])
         node.get_logger().info(f"  - 최종 측정된 거리(mm): {measured_distance_mm:.2f}")
 
-        # 블록 개수 = 거리 / 블록 두께(16.75 mm)
+        # 블록 개수 = 거리 / 블록 두께(15.1976 mm)
         block_count = round(measured_distance_mm / BLOCK_THICKNESS_MM)
         
         node.get_logger().info("=================================")
