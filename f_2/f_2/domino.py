@@ -92,6 +92,7 @@ def main(args=None):
     set_velx(100.0, 30.625)
     set_accx(100.0, 50.5)
 
+    BLOCK_THICKNESS_MM = 16.75
     # 가장 우측 도미노 집는 위치
     domino_starting_point = posx([350.0, -230.0, 55, 30, -180, 30])
     right_start_point = posx([256.882, -234.63, 53.755, 30.124, -178.73, 29.768])
@@ -138,7 +139,7 @@ def main(args=None):
                     posx(right_point_up ),
                     posx(domino_point_up)
                 ], ref=0)
-                theta = [20, 20, 0, 0, 0, 0]
+                theta = [20, 30, 0, 0, 0, 10]
                 domino_point = trans(domino_point, theta).tolist()
                 domino_point_up = trans(posx(domino_point), delta).tolist()
                 movesx([

@@ -192,6 +192,8 @@ def main(args=None):
         movej(Global_0)         # 최종적으로 초기 자세
         node.get_logger().info("[6] 측정 후 초기 자세 복귀 완료.")
 
+        return final_pose_data
+
     ######################################################################
     # 5. 메인 루프 (노드 실행 시 동작)
     ######################################################################
@@ -206,7 +208,8 @@ def main(args=None):
 
         # 메인 동작: 블록 길이 측정
         node.get_logger().info("나무 블록의 길이를 측정하기 시작합니다.")
-        measure_length_with_force_control()
+        right_start_point = measure_length_with_force_control()
+        node.get_logger().info(f"감지 위치 {right_start_point}")
 
         node.get_logger().info("측정을 모두 마쳤으므로 노드를 종료합니다.")
         rclpy.shutdown()
