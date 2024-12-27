@@ -63,9 +63,9 @@ def main(args=None):
     # 좌표 정의
     # --------------------------------------------------
     # 오른쪽 '위' 좌표 (충돌 방지용 오버헤드)
-    right0_pose_list = [256.882, -254.63, 60.755, 30.124, -178.73, 29.768]
+    right0_pose_list = [256.882, -254.63, 123.755, 30.124, -178.73, 29.768]
     # 왼쪽 '위' 좌표 (충돌 방지용 오버헤드)
-    left0_pose_list  = [274.499,  261.32, 58.196, 145.692, -175.886, 139.237]
+    left0_pose_list  = [274.499,  261.32, 121.196, 145.692, -175.886, 139.237]
     # 오른쪽 (실제 측정 지점)
     right_pose_list = [256.882, -254.63, 53.755, 30.124, -178.73, 29.768]
     # 왼쪽 (실제 측정 지점)
@@ -79,7 +79,7 @@ def main(args=None):
     left_pose   = posx(left_pose_list)
 
     # 나무 블록 두께(1 cm)
-    BLOCK_THICKNESS_CM = 1.0
+    BLOCK_THICKNESS_CM = 1.6
 
     ######################################################################
     # 3. 디지털 IO 제어 및 그리퍼 함수
@@ -94,6 +94,15 @@ def main(args=None):
                 break
             time.sleep(period)
             node.get_logger().info(f"Waiting for digital input #{sig_num} to be {desired_state}")
+
+    def gripper_release():
+        set_digital_output(2, ON)
+        set_digital_output(1, OFF)
+        node.get_logger().info("Waiting 0.1s for release...")
+        rclpy.spin_once(node, timeout_sec=0.1)
+        wait_digital_input(sig_num=2, desired_state=True)
+        node.get_logger().info("Gripper opened")
+        time.sleep(0.2)
 
     def gripper_grip():
         """
@@ -148,9 +157,9 @@ def main(args=None):
         ##################################################################
         node.get_logger().info("오른쪽(+Y) 힘 제어를 시작합니다.")
         task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
-        set_desired_force(fd=[0, 30, 0, 0, 0, 0], dir=[0, 1, 0, 0, 0, 0], mod=DR_FC_MOD_REL)
+        set_desired_force(fd=[0, 1, 0, 0, 0, 0], dir=[0, 1, 0, 0, 0, 0], mod=DR_FC_MOD_REL)
 
-        while not check_force_condition(DR_AXIS_Y, max=5):
+        while not check_force_condition(DR_AXIS_Y, max=1.5):
             time.sleep(0.1)
 
         current_pose_r2l = get_current_posx()
@@ -184,9 +193,9 @@ def main(args=None):
         ##################################################################
         node.get_logger().info("왼쪽(-Y) 힘 제어를 시작합니다.")
         task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
-        set_desired_force(fd=[0, -30, 0, 0, 0, 0], dir=[0, 1, 0, 0, 0, 0], mod=DR_FC_MOD_REL)
+        set_desired_force(fd=[0, -1, 0, 0, 0, 0], dir=[0, 1, 0, 0, 0, 0], mod=DR_FC_MOD_REL)
 
-        while not check_force_condition(DR_AXIS_Y, max=5):
+        while not check_force_condition(DR_AXIS_Y, max=1.5):
             time.sleep(0.1)
 
         current_pose_l2r = get_current_posx()
@@ -233,6 +242,9 @@ def main(args=None):
     # 5. 노드 실행 시 동작 (메인 로직)
     ######################################################################
     try:
+
+        gripper_release()
+        movej(Global_0)
         # 노드 실행 직후, 그리퍼를 닫은 상태로 시작
         gripper_measure()
         node.get_logger().info("노드 시작 시 그리퍼를 닫은 상태로 초기화했습니다.")
