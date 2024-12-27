@@ -27,6 +27,7 @@ setup(
             "pillar_sort_kwi=f_2.pillar_sort_kwi:main",
             "gear=f_2.gear:main",
             "domino=f_2.domino:main",
+            "force=f_2.force:main"
         ],
     },
 )
