@@ -32,7 +32,9 @@ def main(args=None):
             check_force_condition,
             release_compliance_ctrl,
             set_singular_handling,
-            gripper_grip,
+            set_digital_output,
+            get_digital_input,
+            
             posj,
             posx,
             DR_AXIS_X,
@@ -184,6 +186,31 @@ def main(args=None):
         movej(Global_0)
         node.get_logger().info("초기 자세로 복귀 완료.")
 
+    def wait_digital_input(sig_num, desired_state=True, period=0.2):
+        while rclpy.ok():
+            val = get_digital_input(sig_num)
+            if val == desired_state:
+                break
+            time.sleep(period)
+            print(f"Waiting for digital input #{sig_num} to be {desired_state}")
+            
+    def gripper_grip():
+        set_digital_output(1, ON)
+        set_digital_output(2, OFF)
+        node.get_logger().info("Waiting for gripper to close...")
+        rclpy.spin_once(node, timeout_sec=0.5)
+        wait_digital_input(sig_num=1, desired_state=True)
+        node.get_logger().info("Gripper closed")
+        time.sleep(0.2)
+
+    def gripper_measure():
+        set_digital_output(1, ON)
+        set_digital_output(2, OFF)
+        node.get_logger().info("Measure...")
+        rclpy.spin_once(node, timeout_sec=0.5)
+        #wait_digital_input(sig_num=1, desired_state=True)
+        node.get_logger().info("Gripper closed")
+        time.sleep(0.3)
     ######################################################################
     # 4. 보조 함수: 높이 측정을 위한 함수 (기존 코드)
     ######################################################################
