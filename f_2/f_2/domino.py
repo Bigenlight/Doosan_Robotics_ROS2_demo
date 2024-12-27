@@ -93,7 +93,7 @@ def main(args=None):
     set_accx(100.0, 50.5)
 
     # 가장 우측 도미노 집는 위치
-    domino_starting_point = posx([300.0, -230.0, 55, 30, -180, 30])
+    domino_starting_point = posx([350.0, -230.0, 55, 30, -180, 30])
     right_start_point = posx([256.882, -234.63, 53.755, 30.124, -178.73, 29.768])
 
 
@@ -102,6 +102,7 @@ def main(args=None):
     while rclpy.ok():
         node.get_logger().info("Starting Domino ...")
         gripper_release()
+        time.sleep(1)
         movej(Global_0)
         time.sleep(1)
         
@@ -109,25 +110,25 @@ def main(args=None):
         for i in range(domino_count):
             
             #### 도미노 하나 짚기
-            delta = [0, 0, 50, 0, 0, 0]
-            alpha = [0, i * 10, 50, 0, 0, 0]
+            delta = [0, 0, 100, 0, 0, 0]
+            alpha = [0, i * 10, 0, 0, 0, 0]
             right_point = trans(right_start_point, alpha)
-            node.get_logger().info(f"연산 : {right_point}, 타입: {type(right_point)}\n")
-            right_point_up = trans(posx(right_point), delta)
+            #node.get_logger().info(f"연산 : {right_point}, 타입: {type(right_point)}\n")
             right_point = right_point.tolist()
-            right_point_up= right_point_up.tolist
-            movel(posx(right_point))
+            right_point_up = trans(posx(right_point), delta)
+            right_point_up= right_point_up.tolist()
             movesx([
                 posx(right_point_up),
                 posx(right_point)
             ], ref=0)
 
             gripper_grip()
+
             gamma = [0, i * 30, 0, 0, 0, 0]
-            domino_point = trans(right_start_point, gamma).tolist
-            domino_point_up = trans(posx(domino_point), delta).tolist
+            domino_point = trans(domino_starting_point, gamma).tolist()
+            domino_point_up = trans(posx(domino_point), delta).tolist()
             movesx([
-                #posx(right_point_up ),
+                posx(right_point_up ),
                 posx(domino_point_up),
                 posx(domino_point)
             ], ref=0)

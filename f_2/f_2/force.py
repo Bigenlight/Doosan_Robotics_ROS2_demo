@@ -94,6 +94,15 @@ def main(args=None):
         node.get_logger().info("Gripper closed")
         time.sleep(0.2)
 
+    def gripper_measure():
+        set_digital_output(1, ON)
+        set_digital_output(2, OFF)
+        node.get_logger().info("Measure...")
+        rclpy.spin_once(node, timeout_sec=0.5)
+        #wait_digital_input(sig_num=1, desired_state=True)
+        node.get_logger().info("Gripper closed")
+        time.sleep(0.3)
+    
     ######################################################################
     # 4. 보조 함수: 힘 제어를 이용한 길이 측정
     ######################################################################
@@ -201,7 +210,7 @@ def main(args=None):
     ######################################################################
     try:
         # 노드 실행 직후, 그리퍼를 닫은 상태로 시작
-        gripper_grip()
+        gripper_measure()
         node.get_logger().info("노드 시작 시 그리퍼가 닫힌 상태로 초기화했습니다.")
 
         # 메인 동작: 블록 길이 측정
