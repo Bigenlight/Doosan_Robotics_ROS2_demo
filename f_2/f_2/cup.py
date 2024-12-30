@@ -116,11 +116,7 @@ def main(args=None):
         movel(measure_approach)
         gripper_measure()
 
-        # 힘제어 on
-        task_compliance_ctrl(stx=[1000, 1000, 1000, 100, 100, 100])
-        set_desired_force(fd=[0, 0, -15, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
-
-        # Z축으로 눌러서 max=3N 조건에 도달할 때까지 대기
+        # 힘 제어
         force_control_release(5)
 
         time.sleep(0.1)
@@ -129,11 +125,10 @@ def main(args=None):
         current_pose, _ = get_current_posx()
 
         offset = [0, 0, -17, 0, 0, 0]
-        cup_starting_point_top = [a + b for a, b in zip(current_pose, offset)]
-
-        # 측정 후 살짝 위로 복귀 (예: 100mm 위로)
-        z_up_100 = [0, 0, 50, 0, 0, 0]
-        measure_return = [a + b for a, b in zip(cup_starting_point_top, z_up_100)]
+        cup_starting_point_top = add_coordination(current_pose, offset)
+        # 측정 후 살짝 위로 복귀 (예: 50mm 위로)
+        z_up_50 = [0, 0, 50, 0, 0, 0]
+        measure_return = add_coordination(cup_starting_point_top, z_up_50)
 
         movel(posx(measure_return))
         time.sleep(0.2)
@@ -148,10 +143,9 @@ def main(args=None):
         gripper_release()
 
         decreased_height_grip = [0, 0, (-1) * CUP_STACK_GAP * cup_index, 0, 0, 0] # 컵 집는 위치
-        cup_gripping_point = [a + b for a, b in zip(cup_starting_point_top, decreased_height_grip)]
+        cup_gripping_point = add_coordination(cup_starting_point_top, decreased_height_grip)
         z_up_3 = [0, 0, 20, 0, 0, 0]
-        cup_gripping_point_up = [a + b for a, b in zip(cup_gripping_point, z_up_3)]
-
+        cup_gripping_point_up = add_coordination(cup_gripping_point, z_up_3)
 
         movesx([
             posx(last_pose),
@@ -163,7 +157,8 @@ def main(args=None):
         time.sleep(0.2)
         gripper_grip()
         z_up_11 = [0, 0, 110, 0, 0, 0]
-        cup_gripping_point_above = [a + b for a, b in zip(cup_gripping_point, z_up_11)]
+        #cup_gripping_point_above = [a + b for a, b in zip(cup_gripping_point, z_up_11)]
+        cup_gripping_point_above = add_coordination(cup_gripping_point, z_up_11)
         cup_gripping_point_above_right = add_coordination(cup_gripping_point_above, [0, -80, 10, 0, 0, 0])
 
         return cup_gripping_point_above, cup_gripping_point_above_right
@@ -183,7 +178,7 @@ def main(args=None):
 
         # 방향 전환
         last_cup_pose[-3:] = [167.4, -90, -90]
-        top_cup_pose = posx(add_coordination(last_cup_pose,[17,0,36,0,0,0]))
+        top_cup_pose = posx(add_coordination(last_cup_pose,[15.5,0,36,0,0,0]))
         movel(top_cup_pose)
         #movej(q7)
         time.sleep(0.2)
@@ -251,10 +246,9 @@ def main(args=None):
             #movel(posx(cup_position_above))
 
             decreased_height_grip = [0, 0, (-1) * CUP_STACK_GAP * (cup_index - idx) + 10, 0, 0, 0] # 컵 집는 위치
-            cup_releasing_point = [a + b for a, b in zip(cup_starting_point_top, decreased_height_grip)]
+            cup_releasing_point = add_coordination(cup_starting_point_top, decreased_height_grip)
             z_up_110 = [0, 0, 110, 0, 0, 0]
-            cup_releasing_point_up = [a + b for a, b in zip(cup_releasing_point, z_up_110)]
-
+            cup_releasing_point_up = add_coordination(cup_releasing_point, z_up_110)
             movesx([
                 posx(cup_position_above),
                 posx(cup_releasing_point_up),
@@ -269,11 +263,11 @@ def main(args=None):
             node.get_logger().info(f"컵 {idx+1} 정리가 완료되었습니다.")
 
     
-    ###################### 좌표 정의 ############################
+    ###################### 좌표 및 파라미터 정의 ############################
     # 홈
     Global_0 = posj(0.00, 0.0, 90.0, 0.0, 90.0, 0.0)
     # 컵 시작 위치, 꼭대기 (11층) 집는 위치 (베이스 좌표)
-    cup_starting_point_top = [405.801, 222.796, 213.67, 90.0, 180.0, 90.0]
+    #cup_starting_point_top = [405.801, 222.796, 213.67, 90.0, 180.0, 90.0]
     # 마지막 컵
     q1 = posj(24.972, 17.703, 51.714, 0.696, 111.215, -0.064) # posj 변수(관절각) q1 정의
     q2 = posj(72.144, 39.267, 81.066, -58.421, 113.432, 52.264) 
@@ -286,7 +280,6 @@ def main(args=None):
     q9 = posj(-18.553, -27.842, 125.458, 19.413, 26.208, 66.207)
     q91 = posj(-11.334, -35.402, 142.605, 8.668, -8.441, 79.525)
     q92 = posj(-23.427, -30.521, 124.775, 15.086, 43.376, 66.22)
-
     q10 = posj(-45.415, -22.36, 117.436, 28.442, 68.935, 17.352)
 
     # 컵 관련 파라미터
@@ -298,7 +291,7 @@ def main(args=None):
     set_singular_handling()  # or pass a parameter if needed
     set_velj(20.0)
     set_accj(20.0)
-    set_velx(200.0, 100.625)
+    set_velx(300.0, 100.625)
     set_accx(200.0, 100.5)
 
 
@@ -328,16 +321,18 @@ def main(args=None):
         # 컵 쌓기
         for z in range(3):
             z_add = [0, 0, 94 * z, 0, 0, 0]
-            z_value = [a + b for a, b in zip(starting_point, z_add)]
+            # z_value = [a + b for a, b in zip(starting_point, z_add)]
+            z_value = add_coordination(starting_point, z_add)
             for x in range(3-z):
                 x_add = [((-1) * CUP_DIAMETER  * (root3 / 3) * z) + ((-1) * CUP_DIAMETER  * (root3 / 2) * x), 0, 0, 0, 0, 0]
-                xz_value = [a + b for a, b in zip(z_value, x_add)]
+                # xz_value = [a + b for a, b in zip(z_value, x_add)]
+                xz_value = add_coordination(z_value, x_add)
                 for y in range(1+x):
                     gripper_release()
                     node.get_logger().info(f"floor: {z}, x: {x}, y: {y}")
                     y_add = [0, (-1)*(CUP_DIAMETER/2 * x) + (CUP_DIAMETER  * y), 0, 0, 0, 0]
-                    xyz_value = [a + b for a, b in zip(xz_value, y_add)]
-
+                    # xyz_value = [a + b for a, b in zip(xz_value, y_add)]
+                    xyz_value = add_coordination(xz_value, y_add)
                     # 2. 현재 xyz_value를 저장하는 함수 호출
                     save_xyz_value(add_coordination(xyz_value, [0, 0, -8, 0, 0, 0]))
 
@@ -345,10 +340,11 @@ def main(args=None):
                     last_pose, last_pose_right = grip_cup(cup_index, put_down_up)
 
                     if z == 2:
-                        z_up = [0, 0, 20, 0, 0, 0]
+                        z_up = [0, 0, 25, 0, 0, 0]
                     else:
                         z_up = [0, 0, 50, 0, 0, 0]
-                    xyz_value_up = [a + b for a, b in zip(xyz_value, z_up)]
+                    # xyz_value_up = [a + b for a, b in zip(xyz_value, z_up)]
+                    xyz_value_up = add_coordination(xyz_value, z_up)
 
                     movesx([
                         posx(last_pose),
