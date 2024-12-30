@@ -34,23 +34,28 @@ def main(args=None):
 
     JReady = [0, 0, 90, 0, 90, 0]
     offset = 102.0
-    pos1 = posx(500.0,    -1.51,         22.61, 86.72, 179.94, 86.74)
-    pos2 = posx(500.0,    -1.51 -offset, 22.61, 86.72, 179.94, 86.74)
-    pos3 = posx(500.0, 148.64,         22.61, 6.55,  -179.64, 6.31)
+    # pos1 = posx(500.0,    -1.51,         22.61, 86.72, 179.94, 86.74)
+    # pos2 = posx(500.0,    -1.51 -offset, 22.61, 86.72, 179.94, 86.74)
+    # pos3 = posx(500.0, 148.64,         22.61, 6.55,  -179.64, 6.31)
 
     set_tool("Tool Weight_2FG")
     set_tcp("2FG_TCP")
 
     while rclpy.ok():
 
-        print("movej")
-        movej(JReady, vel=VELOCITY, acc=ACC)
-        print("movel")
-        movel(pos1, vel=VELOCITY, acc=ACC)
-        print("movel")
-        movel(pos2, vel=VELOCITY, acc=ACC)
-        print("movel")
-        movel(pos3, vel=VELOCITY, acc=ACC)
+        # print("movej")
+        # movej(JReady, vel=VELOCITY, acc=ACC)
+        # print("movel")
+        # movel(pos1, vel=VELOCITY, acc=ACC)
+        # print("movel")
+        # movel(pos2, vel=VELOCITY, acc=ACC)
+        # print("movel")
+        # movel(pos3, vel=VELOCITY, acc=ACC)
+        # q3 = posj(64.492, 53.062, 86.909, -61.17, 111.002, 57.534) 
+        # movej(posj(64.492, 53.062, 86.909, -61.17, 111.002, 57.534) , vel=20)
+
+        Global_0 = posj(0.00, 0.0, 90.0, 0.0, 90.0, 0.0)
+        movej(Global_0)
 
     rclpy.shutdown()
 if __name__ == "__main__":

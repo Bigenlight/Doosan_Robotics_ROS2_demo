@@ -29,6 +29,7 @@ setup(
             "domino=f_2.domino:main",
             "force=f_2.force:main",
             "cup=f_2.cup:main",
+            "test_sj=f_2.test_sj:main",
         ],
     },
 )
