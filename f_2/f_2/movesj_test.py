@@ -214,6 +214,9 @@ def main(args=None):
 
     
     # 마지막 컵 뒤집어서 놓기
+    movesj(going_to_grip_list)
+
+
     gripper_release()
     node.get_logger().info("마지막 컵")
 
@@ -229,11 +232,11 @@ def main(args=None):
     movej(q7)
 
     #while rclpy.ok():
-    task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
-    set_desired_force(fd=[0, 0, -15, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
-    while not check_force_condition(DR_AXIS_Z, max=3):
-        pass
-    release_compliance_ctrl()
+    # task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
+    # set_desired_force(fd=[0, 0, -15, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
+    # while not check_force_condition(DR_AXIS_Z, max=3):
+    #     pass
+    # release_compliance_ctrl()
     
     gripper_release()
     time.sleep(0.2)
