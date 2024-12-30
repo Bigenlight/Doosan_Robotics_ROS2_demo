@@ -28,6 +28,7 @@ def main(args=None):
             release_compliance_ctrl,
             get_current_posx,
             movej,
+            amovej,
             movel,
             movesj,
             amovesj,
@@ -214,30 +215,31 @@ def main(args=None):
 
     
     # 마지막 컵 뒤집어서 놓기
-    movesj(going_to_grip_list)
+    #movesj(going_to_grip_list)
 
 
     gripper_release()
     node.get_logger().info("마지막 컵")
 
-    movej(q1)
-    movej(q2)
-    movej(q3)
+    amovej(q1)
+    amovej(q2)
+    amovej(q3)
+    time.sleep(0.2)
     gripper_grip()
     time.sleep(0.2)
 
-    movej(q4)
-    movej(q5)
-    movej(q6)
+    amovej(q4)
+    amovej(q5)
+    amovej(q6)
     movej(q7)
 
     #while rclpy.ok():
-    # task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
-    # set_desired_force(fd=[0, 0, -15, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
-    # while not check_force_condition(DR_AXIS_Z, max=3):
-    #     pass
-    # release_compliance_ctrl()
-    
+    task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
+    set_desired_force(fd=[0, 0, -15, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
+    while not check_force_condition(DR_AXIS_Z, max=3):
+        pass
+    release_compliance_ctrl()
+    time.sleep(0.2)
     gripper_release()
     time.sleep(0.2)
 

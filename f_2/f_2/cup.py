@@ -79,6 +79,15 @@ def main(args=None):
         node.get_logger().info("Gripper opened")
         time.sleep(0.2)
 
+    def gripper_measure():
+        set_digital_output(1, ON)
+        set_digital_output(2, OFF)
+        node.get_logger().info("Measure...")
+        #rclpy.spin_once(node, timeout_sec=0.5)
+        #wait_digital_input(sig_num=1, desired_state=True)
+        node.get_logger().info("Gripper closed")
+        time.sleep(0.3)
+        
     #### 컵 하나 집기    
     def grip_cup(cup_index, last_pose = [366.998, 6.125, 194.183, 3.263, -179.907, 3.271]):
         node.get_logger().info(f"Start gripping cup. Cup index: {cup_index}")
@@ -189,7 +198,7 @@ def main(args=None):
                 # movel(last_pose)
                 # node.get_logger().info(f"Move to: {xyz_value_up}")
                 # movel(xyz_value_up)
-                # node.get_logger().info(f"Move to: {xyz_value}")
+                node.get_logger().info(f"Move to: {xyz_value}")
                 # movel(xyz_value)
 
                 put_down_up = xyz_value_up
