@@ -226,10 +226,48 @@ def main(args=None):
     for value in saved_xyz_values:
         node.get_logger().info(f"{value}")
     
-    # 또는, print 함수를 사용하고 싶다면 다음과 같이 수정할 수 있습니다.
-    # for value in saved_xyz_values:
-    #     print(value)
+    #=====================================================================================
+    # 컵 정리 알고리즘 추가
+    #=====================================================================================
+
+    def cleanup_cups():
+        """저장된 xyz_values를 역순으로 불러와 컵을 원위치로 되돌리는 함수"""
+        node.get_logger().info("컵 정리를 시작합니다.")
+        
+        # 컵을 되돌릴 위치 정의 (원래 컵을 가져온 시작 위치로 가정)
+        cleanup_start_position = [580.0, -100.0, 84, 90.0, 180.0, 90.0]
+
+        # 모든 컵을 역순으로 처리
+        for idx, cup_position in enumerate(reversed(saved_xyz_values)):
+            node.get_logger().info(f"컵 정리 진행 중: {idx+1}/{len(saved_xyz_values)}")
+            
+            # 컵 위치로 이동
+            movej(posj(*cup_position))
+            node.get_logger().info(f"컵 위치로 이동: {cup_position}")
+            time.sleep(0.2)
+
+            # 컵 잡기
+            gripper_grip()
+            time.sleep(0.2)
+
+            # 컵을 원위치로 이동
+            movej(posj(*cleanup_start_position))
+            node.get_logger().info(f"컵을 원위치로 이동: {cleanup_start_position}")
+            time.sleep(0.2)
+
+            # 컵 놓기
+            gripper_release()
+            time.sleep(0.2)
+
+            node.get_logger().info(f"컵 {idx+1} 정리가 완료되었습니다.")
     
+    # 컵 정리 함수 호출
+    cleanup_cups()
+
+    #=====================================================================================
+    # 컵 정리 끝
+    #=====================================================================================
+
     # 마지막 컵 뒤집어서 놓기
     gripper_release()
     node.get_logger().info("마지막 컵")
