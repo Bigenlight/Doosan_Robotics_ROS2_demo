@@ -100,15 +100,15 @@ def main(args=None):
         cup_gripping_point_up = [a + b for a, b in zip(cup_gripping_point, z_up_3)]
 
 
-        # movesx([
-        #     posx(last_pose),
-        #     posx(cup_gripping_point_up),
-        #     posx(cup_gripping_point)
-        # ], ref=0)
+        movesx([
+            posx(last_pose),
+            posx(cup_gripping_point_up),
+            posx(cup_gripping_point)
+        ], ref=0)
         
-        movel(posx(last_pose))
-        movel(posx(cup_gripping_point_up))
-        movel(posx(cup_gripping_point))
+        # movel(posx(last_pose))
+        # movel(posx(cup_gripping_point_up))
+        # movel(posx(cup_gripping_point))
 
         node.get_logger().info(f"Move to picking place: {cup_gripping_point}")
         time.sleep(0.2)
@@ -227,6 +227,13 @@ def main(args=None):
     movej(q5)
     movej(q6)
     movej(q7)
+    
+    task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
+    set_desired_force(fd=[0, 0, -15, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
+    while not check_force_condition(DR_AXIS_Z, max=3):
+        pass
+    release_compliance_ctrl()
+
     gripper_release()
     time.sleep(0.2)
 

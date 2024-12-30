@@ -168,49 +168,49 @@ def main(args=None):
 
     
     # 컵 쌓기
-    for z in range(3):
-        z_add = [0, 0, 94 * z, 0, 0, 0]
-        z_value = [a + b for a, b in zip(starting_point, z_add)]
-        for x in range(3-z):
-            x_add = [((-1) * CUP_DIAMETER  * (root3 / 3) * z) + ((-1) * CUP_DIAMETER  * (root3 / 2) * x), 0, 0, 0, 0, 0]
-            xz_value = [a + b for a, b in zip(z_value, x_add)]
-            for y in range(1+x):
-                #gripper_release()
-                node.get_logger().info(f"floor: {z}, x: {x}, y: {y}")
-                y_add = [0, (CUP_DIAMETER/2 * x) + ((-1) * CUP_DIAMETER  * y), 0, 0, 0, 0]
-                xyz_value = [a + b for a, b in zip(xz_value, y_add)]
+    # for z in range(3):
+    #     z_add = [0, 0, 94 * z, 0, 0, 0]
+    #     z_value = [a + b for a, b in zip(starting_point, z_add)]
+    #     for x in range(3-z):
+    #         x_add = [((-1) * CUP_DIAMETER  * (root3 / 3) * z) + ((-1) * CUP_DIAMETER  * (root3 / 2) * x), 0, 0, 0, 0, 0]
+    #         xz_value = [a + b for a, b in zip(z_value, x_add)]
+    #         for y in range(1+x):
+    #             #gripper_release()
+    #             node.get_logger().info(f"floor: {z}, x: {x}, y: {y}")
+    #             y_add = [0, (CUP_DIAMETER/2 * x) + ((-1) * CUP_DIAMETER  * y), 0, 0, 0, 0]
+    #             xyz_value = [a + b for a, b in zip(xz_value, y_add)]
 
-                # 컵 하나 가져오기
-                last_pose = grip_cup(cup_index, put_down_up)
+    #             # 컵 하나 가져오기
+    #             last_pose = grip_cup(cup_index, put_down_up)
 
-                if y == 0:
-                    z_up = [0, 0, 20, 0, 0, 0]
-                else:
-                    z_up = [0, 0, 110, 0, 0, 0]
-                xyz_value_up = [a + b for a, b in zip(xyz_value, z_up)]
-                movesx([
-                    posx(last_pose),
-                    posx(xyz_value_up),
-                    posx(xyz_value)
-                ], ref=0)
+    #             if y == 0:
+    #                 z_up = [0, 0, 20, 0, 0, 0]
+    #             else:
+    #                 z_up = [0, 0, 110, 0, 0, 0]
+    #             xyz_value_up = [a + b for a, b in zip(xyz_value, z_up)]
+    #             movesx([
+    #                 posx(last_pose),
+    #                 posx(xyz_value_up),
+    #                 posx(xyz_value)
+    #             ], ref=0)
                 
-                # movel(last_pose)
-                # node.get_logger().info(f"Move to: {xyz_value_up}")
-                # movel(xyz_value_up)
-                # node.get_logger().info(f"Move to: {xyz_value}")
-                # movel(xyz_value)
+    #             # movel(last_pose)
+    #             # node.get_logger().info(f"Move to: {xyz_value_up}")
+    #             # movel(xyz_value_up)
+    #             # node.get_logger().info(f"Move to: {xyz_value}")
+    #             # movel(xyz_value)
 
-                put_down_up = xyz_value_up
+    #             put_down_up = xyz_value_up
 
-                #while rclpy.ok():
-                task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
-                set_desired_force(fd=[0, 0, -15, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
-                while not check_force_condition(DR_AXIS_Z, max=3):
-                    pass
-                release_compliance_ctrl()
+    #             #while rclpy.ok():
+    #             task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
+    #             set_desired_force(fd=[0, 0, -15, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
+    #             while not check_force_condition(DR_AXIS_Z, max=3):
+    #                 pass
+    #             release_compliance_ctrl()
 
-                gripper_release()
-                cup_index += 1
+    #             gripper_release()
+    #             cup_index += 1
 
     
     # 마지막 컵 뒤집어서 놓기
