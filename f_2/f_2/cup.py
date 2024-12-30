@@ -7,6 +7,8 @@ ROBOT_ID    = "dsr01"
 ROBOT_MODEL = "m0609"
 ON = 1
 OFF = 0
+# 1. 전역 리스트 정의
+saved_xyz_values = []
 
 DR_init.__dsr__id    = ROBOT_ID
 DR_init.__dsr__model = ROBOT_MODEL
@@ -53,6 +55,10 @@ def main(args=None):
         node.get_logger().error(f"Error importing Doosan libraries: {e}")
         return
 
+    def save_xyz_value(xyz):
+        """xyz_value를 전역 리스트에 저장하는 함수"""
+        global saved_xyz_values
+        saved_xyz_values.append(xyz.copy())  # 리스트의 복사본을 저장하여 참조 문제 방지
 
     def wait_digital_input(sig_num, desired_state=True, period=0.2):
         while rclpy.ok():
@@ -110,18 +116,17 @@ def main(args=None):
         node.get_logger().info(f"Stop Force")
         release_compliance_ctrl()
         time.sleep(0.1)
-        node.get_logger().info(f"2")
+
         # 현재 위치를 얻어와 cup_starting_point_top에 대입
         current_pose, _ = get_current_posx()
-        node.get_logger().info(f"3")
+
         offset = [0, 0, -17, 0, 0, 0]
         cup_starting_point_top = [a + b for a, b in zip(current_pose, offset)]
-        node.get_logger().info(f"4")
 
-        # 측정 후 살짝 위로 복귀 (예: 20mm 위로)
+        # 측정 후 살짝 위로 복귀 (예: 100mm 위로)
         z_up_100 = [0, 0, 100, 0, 0, 0]
         measure_return = [a + b for a, b in zip(cup_starting_point_top, z_up_100)]
-        node.get_logger().info(f"5")
+
         movel(posx(measure_return))
         time.sleep(0.2)
         gripper_release()
@@ -223,10 +228,13 @@ def main(args=None):
             x_add = [((-1) * CUP_DIAMETER  * (root3 / 3) * z) + ((-1) * CUP_DIAMETER  * (root3 / 2) * x), 0, 0, 0, 0, 0]
             xz_value = [a + b for a, b in zip(z_value, x_add)]
             for y in range(1+x):
-                #gripper_release()
+                gripper_release()
                 node.get_logger().info(f"floor: {z}, x: {x}, y: {y}")
                 y_add = [0, (CUP_DIAMETER/2 * x) + ((-1) * CUP_DIAMETER  * y), 0, 0, 0, 0]
                 xyz_value = [a + b for a, b in zip(xz_value, y_add)]
+
+                # 2. 현재 xyz_value를 저장하는 함수 호출
+                save_xyz_value(xyz_value)
 
                 # 컵 하나 가져오기
                 last_pose = grip_cup(cup_index, put_down_up)
@@ -242,15 +250,10 @@ def main(args=None):
                     posx(xyz_value)
                 ], ref=0)
                 
-                # movel(last_pose)
-                # node.get_logger().info(f"Move to: {xyz_value_up}")
-                # movel(xyz_value_up)
                 node.get_logger().info(f"Move to: {xyz_value}")
-                # movel(xyz_value)
 
                 put_down_up = xyz_value_up
 
-                #while rclpy.ok():
                 task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
                 set_desired_force(fd=[0, 0, -15, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
                 while not check_force_condition(DR_AXIS_Z, max=3):
@@ -261,6 +264,11 @@ def main(args=None):
                 cup_index += 1
 
     
+    # 저장된 xyz_values 출력
+    node.get_logger().info("저장된 xyz_values:")
+    for value in saved_xyz_values:
+        node.get_logger().info(f"{value}")
+
     # 마지막 컵 뒤집어서 놓기
     gripper_release()
     node.get_logger().info("마지막 컵")
@@ -286,9 +294,9 @@ def main(args=None):
     time.sleep(0.2)
 
     #movej(q8)
-    movej(q9)
-    movej(q10)
-    movej(Global_0)
+    amovej(q9)
+    amovej(q10)
+    amovej(Global_0)
 
     node.get_logger().info("Shutting down node.")
     rclpy.shutdown()
