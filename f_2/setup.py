@@ -30,6 +30,7 @@ setup(
             "force=f_2.force:main",
             "cup=f_2.cup:main",
             "test_sj=f_2.test_sj:main",
+            "cup_kwi=f_2.cup_kwi:main",
         ],
     },
 )
