@@ -125,7 +125,7 @@ def main(args=None):
     # 컵 시작 위치, 꼭대기 (11층) 집는 위치 (베이스 좌표)
     cup_starting_point_top = [405.801, 222.796, 213.67, 90.0, 180.0, 90.0]
 
-    CUP_DIAMETER = 86
+    CUP_DIAMETER = 82
     CUP_STACK_GAP = 11.5
     root3 = sqrt(3)
 
@@ -141,7 +141,7 @@ def main(args=None):
     ###################### 시작
     #while rclpy.ok():
     put_down_up = [366.998, 6.125, 194.183, 3.263, -179.907, 3.271]
-    starting_point = [700.0, -100.0, 84, 90.0, 180.0, 90.0]
+    starting_point = [600.0, -100.0, 84, 90.0, 180.0, 90.0]
     gripper_release()
     time.sleep(0.2)
     movej(Global_0)
@@ -151,12 +151,12 @@ def main(args=None):
         z_add = [0, 0, 94 * z, 0, 0, 0]
         z_value = [a + b for a, b in zip(starting_point, z_add)]
         for x in range(3-z):
-            x_add = [(-1) * CUP_DIAMETER  * (root3 / 3) * z + (-1) * CUP_DIAMETER  * (root3 / 2) * x, 0, 0, 0, 0, 0]
+            x_add = [((-1) * CUP_DIAMETER  * (root3 / 3) * z) + ((-1) * CUP_DIAMETER  * (root3 / 2) * x), 0, 0, 0, 0, 0]
             xz_value = [a + b for a, b in zip(z_value, x_add)]
             for y in range(1+x):
                 #gripper_release()
                 node.get_logger().info(f"floor: {z}, x: {x}, y: {y}")
-                y_add = [0, CUP_DIAMETER/2 * x + (-1) * CUP_DIAMETER  * y, 0, 0, 0, 0]
+                y_add = [0, (CUP_DIAMETER/2 * x) + ((-1) * CUP_DIAMETER  * y), 0, 0, 0, 0]
                 xyz_value = [a + b for a, b in zip(xz_value, y_add)]
 
                 # 컵 하나 가져오기
