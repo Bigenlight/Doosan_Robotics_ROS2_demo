@@ -53,9 +53,9 @@ def main(args=None):
         # movel(pos3, vel=VELOCITY, acc=ACC)
         # q3 = posj(64.492, 53.062, 86.909, -61.17, 111.002, 57.534) 
         # movej(posj(64.492, 53.062, 86.909, -61.17, 111.002, 57.534) , vel=20)
-
+        q9 = posj(-18.553, -27.842, 125.458, 19.413, 26.208, 66.207)
         Global_0 = posj(0.00, 0.0, 90.0, 0.0, 90.0, 0.0)
-        movej(Global_0)
+        movej(q9, vel = 20, acc = 100)
 
     rclpy.shutdown()
 if __name__ == "__main__":
