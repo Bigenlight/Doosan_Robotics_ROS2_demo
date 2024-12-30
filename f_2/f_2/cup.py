@@ -199,15 +199,15 @@ def main(args=None):
                 # movel(xyz_value_up)
                 # node.get_logger().info(f"Move to: {xyz_value}")
                 # movel(xyz_value)
-                
+
                 put_down_up = xyz_value_up
 
-                while rclpy.ok():
-                    task_compliance_ctrl(stx=[500, 500, 500, 100, 100, 100])
-                    set_desired_force(fd=[0, 0, -15, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
-                    while not check_force_condition(DR_AXIS_Z, max=5):
-                        pass
-                    release_compliance_ctrl()
+                #while rclpy.ok():
+                task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
+                set_desired_force(fd=[0, 0, -15, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
+                while not check_force_condition(DR_AXIS_Z, max=3):
+                    pass
+                release_compliance_ctrl()
 
                 gripper_release()
                 cup_index += 1
