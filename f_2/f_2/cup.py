@@ -17,6 +17,7 @@ def main(args=None):
     rclpy.init(args=args)
     node = rclpy.create_node("doosan_drl_example", namespace=ROBOT_ID)
     DR_init.__dsr__node = node
+    global saved_xyz_values
 
     try:
         from DSR_ROBOT2 import (
@@ -153,7 +154,7 @@ def main(args=None):
             posx(last_pose),
             posx(cup_gripping_point_up),
             posx(cup_gripping_point)
-        ], ref=0)
+        ], ref=0, vel= 200)
         
         # movel(posx(last_pose))
         # movel(posx(cup_gripping_point_up))
@@ -192,7 +193,7 @@ def main(args=None):
         time.sleep(0.2)
 
         #movej(q8)
-        amovej(q9)
+        movej(q9)
         amovej(q10)
         amovej(Global_0)
     
@@ -210,11 +211,9 @@ def main(args=None):
         movej(q6)
         movej(q5)
         movej(q4)
-        
+        movej(q3)
         gripper_release()
         time.sleep(0.2)
-
-        movej(q3)
         movej(q2)
         movej(q1)    
 
@@ -226,10 +225,12 @@ def main(args=None):
         for idx, cup_position in enumerate(reversed(saved_xyz_values)):
             node.get_logger().info(f"컵 정리 진행 중: {idx+1}/{len(saved_xyz_values)}")
             
-            z_up_30 = [0, 0, 50, 0, 0, 0]
-            cup_position_up = add_coordination(cup_position, z_up_30)
-
             # 컵 위치로 이동
+            z_up_50 = [0, 0, 50, 0, 0, 0]
+            z_up_110 = [0, 0, 110, 0, 0, 0]
+            cup_position_up = add_coordination(cup_position, z_up_50)
+            cup_position_above = add_coordination(cup_position, z_up_110)
+            
             movel(posx(cup_position_up))
             movel(posx(cup_position))
             node.get_logger().info(f"컵 위치로 이동: {cup_position}")
@@ -238,18 +239,19 @@ def main(args=None):
             # 컵 잡기
             gripper_grip()
             time.sleep(0.2)
+            movel(posx(cup_position_above))
 
             decreased_height_grip = [0, 0, (-1) * CUP_STACK_GAP * (cup_index - idx), 0, 0, 0] # 컵 집는 위치
             cup_releasing_point = [a + b for a, b in zip(cup_starting_point_top, decreased_height_grip)]
-            z_up_3 = [0, 0, 30, 0, 0, 0]
-            cup_releasing_point_up = [a + b for a, b in zip(cup_releasing_point, z_up_3)]
+            z_up_110 = [0, 0, 110, 0, 0, 0]
+            cup_releasing_point_up = [a + b for a, b in zip(cup_releasing_point, z_up_110)]
 
             movel(posx(cup_releasing_point_up))
             movel(posx(cup_releasing_point))
             # 컵 놓기
             gripper_release()
             time.sleep(0.2)
-
+            movel(posx(cup_releasing_point_up))
             node.get_logger().info(f"컵 {idx+1} 정리가 완료되었습니다.")
 
     ######################################################################
@@ -288,8 +290,8 @@ def main(args=None):
     set_singular_handling()  # or pass a parameter if needed
     set_velj(20.0)
     set_accj(20.0)
-    set_velx(150.0, 100.625)
-    set_accx(150.0, 100.5)
+    set_velx(200.0, 100.625)
+    set_accx(200.0, 100.5)
 
     cup_index = 0
     ###################### 시작
@@ -302,62 +304,67 @@ def main(args=None):
     time.sleep(0.2)
     movej(Global_0)
 
-    # # 집는 좌표따기
-    # node.get_logger().info("시작 높이를 측정합니다.")
-    # cup_starting_point_top, put_down_up = measure_start()
-    # node.get_logger().info("측정 끝.")
+    # 집는 좌표따기
+    node.get_logger().info("시작 높이를 측정합니다.")
+    cup_starting_point_top, put_down_up = measure_start()
+    node.get_logger().info("측정 끝.")
 
-    # # 컵 쌓기
-    # for z in range(3):
-    #     z_add = [0, 0, 94 * z, 0, 0, 0]
-    #     z_value = [a + b for a, b in zip(starting_point, z_add)]
-    #     for x in range(3-z):
-    #         x_add = [((-1) * CUP_DIAMETER  * (root3 / 3) * z) + ((-1) * CUP_DIAMETER  * (root3 / 2) * x), 0, 0, 0, 0, 0]
-    #         xz_value = [a + b for a, b in zip(z_value, x_add)]
-    #         for y in range(1+x):
-    #             gripper_release()
-    #             node.get_logger().info(f"floor: {z}, x: {x}, y: {y}")
-    #             y_add = [0, (CUP_DIAMETER/2 * x) + ((-1) * CUP_DIAMETER  * y), 0, 0, 0, 0]
-    #             xyz_value = [a + b for a, b in zip(xz_value, y_add)]
+    # 컵 쌓기
+    for z in range(3):
+        z_add = [0, 0, 94 * z, 0, 0, 0]
+        z_value = [a + b for a, b in zip(starting_point, z_add)]
+        for x in range(3-z):
+            x_add = [((-1) * CUP_DIAMETER  * (root3 / 3) * z) + ((-1) * CUP_DIAMETER  * (root3 / 2) * x), 0, 0, 0, 0, 0]
+            xz_value = [a + b for a, b in zip(z_value, x_add)]
+            for y in range(1+x):
+                gripper_release()
+                node.get_logger().info(f"floor: {z}, x: {x}, y: {y}")
+                y_add = [0, (-1)*(CUP_DIAMETER/2 * x) + (CUP_DIAMETER  * y), 0, 0, 0, 0]
+                xyz_value = [a + b for a, b in zip(xz_value, y_add)]
 
-    #             # 2. 현재 xyz_value를 저장하는 함수 호출
-    #             save_xyz_value(xyz_value)
+                # 2. 현재 xyz_value를 저장하는 함수 호출
+                save_xyz_value(add_coordination(xyz_value, [0, 0, -10, 0, 0, 0]))
 
-    #             # 컵 하나 가져오기
-    #             last_pose = grip_cup(cup_index, put_down_up)
+                # 컵 하나 가져오기
+                last_pose = grip_cup(cup_index, put_down_up)
 
-    #             if y == 0:
-    #                 z_up = [0, 0, 20, 0, 0, 0]
-    #             else:
-    #                 z_up = [0, 0, 110, 0, 0, 0]
-    #             xyz_value_up = [a + b for a, b in zip(xyz_value, z_up)]
-    #             movesx([
-    #                 posx(last_pose),
-    #                 posx(xyz_value_up),
-    #                 posx(xyz_value)
-    #             ], ref=0)
+                if y == 0:
+                    z_up = [0, 0, 20, 0, 0, 0]
+                else:
+                    z_up = [0, 0, 110, 0, 0, 0]
+                xyz_value_up = [a + b for a, b in zip(xyz_value, z_up)]
+                movesx([
+                    posx(last_pose),
+                    posx(xyz_value_up),
+                    posx(xyz_value)
+                ], ref=0, vel=300)
                 
-    #             node.get_logger().info(f"Move to: {xyz_value}")
+                node.get_logger().info(f"Move to: {xyz_value}")
 
-    #             put_down_up = xyz_value_up
+                put_down_up = xyz_value_up
 
-    #             task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
-    #             set_desired_force(fd=[0, 0, -15, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
-    #             while not check_force_condition(DR_AXIS_Z, max=3):
-    #                 pass
-    #             release_compliance_ctrl()
+                task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
+                set_desired_force(fd=[0, 0, -15, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
+                while not check_force_condition(DR_AXIS_Z, max=7):
+                    pass
+                release_compliance_ctrl()
+                
 
-    #             gripper_release()
-    #             cup_index += 1
+                gripper_release()
+                cup_index += 1
 
+    node.get_logger().info(f"Cup coord List: {saved_xyz_values}")
     # 마지막 컵 뒤집어서 놓기
-    #last_cup_stacking()
+    last_cup_stacking()
 
     # 맨 위 컵 정리
     last_cup_unstack()
 
+    #saved_xyz_values = [[580.0, -100.0, 74, 90.0, 180.0, 90.0], [508.98591688967605, -59.0, 74, 90.0, 180.0, 90.0], [508.98591688967605, -141.0, 74, 90.0, 180.0, 90.0], [437.9718337793521, -18.0, 74, 90.0, 180.0, 90.0], [437.9718337793521, -100.0, 74, 90.0, 180.0, 90.0], [437.9718337793521, -182.0, 74, 90.0, 180.0, 90.0], [532.6572779264507, -100.0, 168, 90.0, 180.0, 90.0], [461.6431948161267, -59.0, 168, 90.0, 180.0, 90.0], [461.6431948161267, -141.0, 168, 90.0, 180.0, 90.0], [485.3145558529014, -100.0, 262, 90.0, 180.0, 90.0]]
+
     # 컵 정리
     cleanup_cups(cup_index - 1)
+    #cleanup_cups(10)
 
     node.get_logger().info("Shutting down node.")
     rclpy.shutdown()
