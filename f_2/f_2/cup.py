@@ -28,6 +28,7 @@ def main(args=None):
             release_compliance_ctrl,
             get_current_posx,
             movej,
+            amovej,
             movel,
             movesj,
             amovesj,
@@ -87,7 +88,47 @@ def main(args=None):
         #wait_digital_input(sig_num=1, desired_state=True)
         node.get_logger().info("Gripper closed")
         time.sleep(0.3)
-        
+    
+    # ------------------------------------------------------------
+    # 1) 컵이 있는 위치를 '힘제어'로 측정하여 cup_starting_point_top에 저장
+    # ------------------------------------------------------------
+    def measure_start():
+        # 측정 접근점 (조금 높은 z좌표로 접근)
+        measure_approach = [400.801, 217.796, 250.0, 90.0, 180.0, 90.0]
+        movel(measure_approach)
+        gripper_measure()
+
+        # 힘제어 on
+        task_compliance_ctrl(stx=[1000, 1000, 1000, 100, 100, 100])
+        set_desired_force(fd=[0, 0, -15, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
+
+        # Z축으로 눌러서 max=3N 조건에 도달할 때까지 대기
+        while not check_force_condition(DR_AXIS_Z, max=5):
+            node.get_logger().info(f"Checking Force")
+            time.sleep(0.01)
+            pass
+        node.get_logger().info(f"Stop Force")
+        release_compliance_ctrl()
+        time.sleep(0.1)
+        node.get_logger().info(f"2")
+        # 현재 위치를 얻어와 cup_starting_point_top에 대입
+        current_pose, _ = get_current_posx()
+        node.get_logger().info(f"3")
+        offset = [0, 0, -17, 0, 0, 0]
+        cup_starting_point_top = [a + b for a, b in zip(current_pose, offset)]
+        node.get_logger().info(f"4")
+
+        # 측정 후 살짝 위로 복귀 (예: 20mm 위로)
+        z_up_100 = [0, 0, 100, 0, 0, 0]
+        measure_return = [a + b for a, b in zip(cup_starting_point_top, z_up_100)]
+        node.get_logger().info(f"5")
+        movel(posx(measure_return))
+        time.sleep(0.2)
+        gripper_release()
+        node.get_logger().info(f"Cup gripping starting height is : {cup_starting_point_top}")
+
+        return  cup_starting_point_top, measure_return
+
     #### 컵 하나 집기    
     def grip_cup(cup_index, last_pose = [366.998, 6.125, 194.183, 3.263, -179.907, 3.271]):
         node.get_logger().info(f"Start gripping cup. Cup index: {cup_index}")
@@ -118,6 +159,7 @@ def main(args=None):
 
         return cup_gripping_point_above
     
+
     ######################################################################
     # 좌표 정의
     ######################################################################
@@ -163,11 +205,16 @@ def main(args=None):
     put_down_up = [366.998, 6.125, 194.183, 3.263, -179.907, 3.271]
 
     starting_point = [580.0, -100.0, 84, 90.0, 180.0, 90.0]
+
     gripper_release()
     time.sleep(0.2)
     movej(Global_0)
 
-    
+    # 집는 좌표따기
+    node.get_logger().info("시작 높이를 측정합니다.")
+    cup_starting_point_top, put_down_up = measure_start()
+    node.get_logger().info("측정 끝.")
+
     # 컵 쌓기
     for z in range(3):
         z_add = [0, 0, 94 * z, 0, 0, 0]
@@ -218,14 +265,14 @@ def main(args=None):
     gripper_release()
     node.get_logger().info("마지막 컵")
 
-    movej(q1)
-    movej(q2)
-    movej(q3)
+    amovej(q1)
+    amovej(q2)
+    amovej(q3)
     gripper_grip()
     time.sleep(0.2)
 
-    movej(q4)
-    movej(q5)
+    amovej(q4)
+    amovej(q5)
     movej(q6)
     movej(q7)
     
