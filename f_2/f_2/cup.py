@@ -167,60 +167,61 @@ def main(args=None):
     movej(Global_0)
 
     
-    # # 컵 쌓기
-    # for z in range(3):
-    #     z_add = [0, 0, 94 * z, 0, 0, 0]
-    #     z_value = [a + b for a, b in zip(starting_point, z_add)]
-    #     for x in range(3-z):
-    #         x_add = [((-1) * CUP_DIAMETER  * (root3 / 3) * z) + ((-1) * CUP_DIAMETER  * (root3 / 2) * x), 0, 0, 0, 0, 0]
-    #         xz_value = [a + b for a, b in zip(z_value, x_add)]
-    #         for y in range(1+x):
-    #             #gripper_release()
-    #             node.get_logger().info(f"floor: {z}, x: {x}, y: {y}")
-    #             y_add = [0, (CUP_DIAMETER/2 * x) + ((-1) * CUP_DIAMETER  * y), 0, 0, 0, 0]
-    #             xyz_value = [a + b for a, b in zip(xz_value, y_add)]
+    # 컵 쌓기
+    for z in range(3):
+        z_add = [0, 0, 94 * z, 0, 0, 0]
+        z_value = [a + b for a, b in zip(starting_point, z_add)]
+        for x in range(3-z):
+            x_add = [((-1) * CUP_DIAMETER  * (root3 / 3) * z) + ((-1) * CUP_DIAMETER  * (root3 / 2) * x), 0, 0, 0, 0, 0]
+            xz_value = [a + b for a, b in zip(z_value, x_add)]
+            for y in range(1+x):
+                #gripper_release()
+                node.get_logger().info(f"floor: {z}, x: {x}, y: {y}")
+                y_add = [0, (CUP_DIAMETER/2 * x) + ((-1) * CUP_DIAMETER  * y), 0, 0, 0, 0]
+                xyz_value = [a + b for a, b in zip(xz_value, y_add)]
 
-    #             # 컵 하나 가져오기
-    #             last_pose = grip_cup(cup_index, put_down_up)
+                # 컵 하나 가져오기
+                last_pose = grip_cup(cup_index, put_down_up)
 
-    #             if y == 0:
-    #                 z_up = [0, 0, 20, 0, 0, 0]
-    #             else:
-    #                 z_up = [0, 0, 110, 0, 0, 0]
-    #             xyz_value_up = [a + b for a, b in zip(xyz_value, z_up)]
-    #             # movesx([
-    #             #     posx(last_pose),
-    #             #     posx(xyz_value_up),
-    #             #     posx(xyz_value)
-    #             # ], ref=0)
+                if y == 0:
+                    z_up = [0, 0, 20, 0, 0, 0]
+                else:
+                    z_up = [0, 0, 110, 0, 0, 0]
+                xyz_value_up = [a + b for a, b in zip(xyz_value, z_up)]
+                # movesx([
+                #     posx(last_pose),
+                #     posx(xyz_value_up),
+                #     posx(xyz_value)
+                # ], ref=0)
                 
-    #             movel(last_pose)
-    #             node.get_logger().info(f"Move to: {xyz_value_up}")
-    #             movel(xyz_value_up)
-    #             node.get_logger().info(f"Move to: {xyz_value}")
-    #             movel(xyz_value)
-    #             put_down_up = xyz_value_up
+                movel(last_pose)
+                node.get_logger().info(f"Move to: {xyz_value_up}")
+                movel(xyz_value_up)
+                node.get_logger().info(f"Move to: {xyz_value}")
+                movel(xyz_value)
+                put_down_up = xyz_value_up
 
-    #             cup_index += 1
+                cup_index += 1
     
     # 마지막 컵 뒤집어서 놓기
     node.get_logger().info("마지막 컵")
-    movesj([
-        posj(0.00, 0.0, 90.0, 0.0, 90.0, 0.0),
-        posj(0.00, 0.0, 90.0, 10.0, 90.0, 0.0),
-    ], vel=20, acc=100) 
 
-    time.sleep(10.2)
-
-    movesj(going_to_grip_list, vel=15) 
+    movej(q1)
+    movej(q2)
+    movej(q3)
     gripper_grip()
     time.sleep(0.2)
 
-    movesj(going_to_put_list, vel=15) 
+    movej(q4)
+    movej(q5)
+    movej(q6)
+    movej(q7)
     gripper_release()
     time.sleep(0.2)
 
-    movesj(going_home_list, vel=15) 
+    #movej(q8)
+    movej(q9)
+    movej(q10)
     movej(Global_0)
 
     node.get_logger().info("Shutting down node.")
