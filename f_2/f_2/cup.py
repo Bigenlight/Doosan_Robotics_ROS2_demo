@@ -2,7 +2,7 @@
 import rclpy
 import DR_init
 import time
-
+from  math import *
 ROBOT_ID    = "dsr01"
 ROBOT_MODEL = "m0609"
 ON = 1
@@ -56,12 +56,12 @@ def main(args=None):
             if val == desired_state:
                 break
             time.sleep(period)
-            print(f"Waiting for digital input #{sig_num} to be {desired_state}")
+            #print(f"Waiting for digital input #{sig_num} to be {desired_state}")
 
     def gripper_grip():
         set_digital_output(1, ON)
         set_digital_output(2, OFF)
-        node.get_logger().info("Waiting for gripper to close...")
+        #node.get_logger().info("Waiting for gripper to close...")
         rclpy.spin_once(node, timeout_sec=0.5)
         wait_digital_input(sig_num=1, desired_state=True)
         node.get_logger().info("Gripper closed")
@@ -70,8 +70,8 @@ def main(args=None):
     def gripper_release():
         set_digital_output(2, ON)
         set_digital_output(1, OFF)
-        node.get_logger().info("Waiting 0.1s for release...")
-        rclpy.spin_once(node, timeout_sec=0.1)
+        #node.get_logger().info("Waiting 0.2s for release...")
+        rclpy.spin_once(node, timeout_sec=0.2)
         wait_digital_input(sig_num=2, desired_state=True)
         node.get_logger().info("Gripper opened")
         time.sleep(0.2)
@@ -80,11 +80,40 @@ def main(args=None):
         set_digital_output(1, ON)
         set_digital_output(2, OFF)
         node.get_logger().info("Measure...")
-        rclpy.spin_once(node, timeout_sec=0.5)
+        #rclpy.spin_once(node, timeout_sec=0.5)
         #wait_digital_input(sig_num=1, desired_state=True)
         node.get_logger().info("Gripper closed")
         time.sleep(0.3)
-    
+
+    #### 컵 하나 집기    
+    def grip_cup(cup_index, last_pose = [366.998, 6.125, 194.183, 3.263, -179.907, 3.271]):
+        node.get_logger().info(f"Start gripping cup. Cup index: {cup_index}")
+        gripper_release()
+        time.sleep(0.2)
+
+        decreased_height_grip = [0, 0, (-1) * CUP_STACK_GAP * cup_index, 0, 0, 0] # 컵 집는 위치
+        cup_gripping_point = [a + b for a, b in zip(cup_starting_point_top, decreased_height_grip)]
+        z_up_3 = [0, 0, 30, 0, 0, 0]
+        cup_gripping_point_up = [a + b for a, b in zip(cup_gripping_point, z_up_3)]
+
+
+        # movesx([
+        #     posx(last_pose),
+        #     posx(cup_gripping_point_up),
+        #     posx(cup_gripping_point)
+        # ], ref=0)
+        
+        movel(posx(last_pose))
+        movel(posx(cup_gripping_point_up))
+        movel(posx(cup_gripping_point))
+
+        node.get_logger().info(f"Move to picking place: {cup_gripping_point}")
+        time.sleep(0.2)
+        gripper_grip()
+        z_up_11 = [0, 0, 130, 0, 0, 0]
+        cup_gripping_point_above = [a + b for a, b in zip(cup_gripping_point, z_up_11)]
+
+        return cup_gripping_point_above
     
     ######################################################################
     # 좌표 정의
@@ -96,7 +125,10 @@ def main(args=None):
     # 컵 시작 위치, 꼭대기 (11층) 집는 위치 (베이스 좌표)
     cup_starting_point_top = [405.801, 222.796, 213.67, 90.0, 180.0, 90.0]
 
+    CUP_DIAMETER = 86
     CUP_STACK_GAP = 11.5
+    root3 = sqrt(3)
+
 
     # 로봇 설정
     set_singular_handling()  # or pass a parameter if needed
@@ -105,164 +137,51 @@ def main(args=None):
     set_velx(100.0, 60.625)
     set_accx(100.0, 50.5)
 
-    # 가장 우측 도미노 집는 위치
-    domino_starting_point = posx([350.0, -230.0, 55, 30, -180, 30])
-    right_start_point = posx([256.882, -234.63, 53.755, 30.124, -178.73, 29.768])
-    
     cup_index = 0
     ###################### 시작
-    while rclpy.ok() and cup_index < 11:
-        gripper_release()
-        time.sleep(1)
-        movej(Global_0)
-        time.sleep(1)
-
-        #result = [a + b for a, b in zip(list1, list2)]
-
-
-        #### 컵 하나 집기
-        decreased_height_grip = [0, 0, -1 * CUP_STACK_GAP * cup_index, 0, 0, 0] # 컵 집는 위치
-        cup_gripping_point = [a + b for a, b in zip(cup_starting_point_top, decreased_height_grip)]
-        z_up_3 = [0, 0, 30, 0, 0, 0]
-        cup_gripping_point_up = [a + b for a, b in zip(cup_gripping_point, z_up_3)]
-
-        movesx([
-            posx(cup_gripping_point_up),
-            posx(cup_gripping_point)
-        ], ref=0)
-
-        gripper_grip()
-        
-        z_up_11 = [0, 0, 110, 0, 0, 0]
-        cup_gripping_point_above = [a + b for a, b in zip(cup_gripping_point, z_up_11)]
-        movel(
-            posx(cup_gripping_point_above)
-        )
-
-        movej(Global_0)
-
-
-### 이전 코드
-        # right_start_point = posx(right_start_point)
-        # node.get_logger().info(f"감지 위치 {right_start_point}")
-        # node.get_logger().info("Starting Domino ...")
-        # gripper_release()
-
-
-
-
-        # for i in range(11): # 0~10
-            
-        #     ### 끝내기
-        #     if domino_length >= end_count or domino_length >= domino_count:
-        #         omega = [0, -40, 0, 0, 0, 0]
-        #         break_point = trans(domino_starting_point, omega).tolist()
-        #         omega = [0, 40, 0, 0, 0, 0]
-        #         break_point_go = trans(posx(domino_starting_point), omega).tolist()
-        #         delta = [0, 0, 100, 0, 0, 0]
-        #         break_point_up = trans(domino_starting_point, delta).tolist()
-
-        #         movel(
-        #             posx(domino_point_up),
-        #         )
-        #         gripper_measure()
-        #         movesx([
-        #             posx(break_point_up),
-        #             posx(break_point),
-        #             posx(break_point_go),
-        #         ], ref=0, vel = 200)
-        #         gripper_release()
-        #         break
-
-
-        #     #### 도미노 하나 짚기
-        #     delta = [0, 0, 100, 0, 0, 0]
-        #     alpha = [0, domino_length * BLOCK_THICKNESS_MM + 10, 0, 0, 0, 0]
-        #     right_point = trans(right_start_point, alpha)
-        #     right_point = right_point.tolist()
-        #     right_point_up = trans(posx(right_point), delta)
-        #     right_point_up= right_point_up.tolist()
-        #     movesx([
-        #         posx(right_point_up),
-        #         posx(right_point)
-        #     ], ref=0)
-
-        #     gripper_grip()
-
-
-        #     if domino_length > starting_circle and theta_count < 6 and rotate_flag == True:
-        #         node.get_logger().info(f"회전 중, 현대 회전 카운트 : {theta_count}\n")
-        #         theta = [
-        #             [5, 40, 0, 0, 0, -30],#1
-        #             [30, 70, 0, 0, 0, -60],#2
-        #             [70, 80, 0, 0, 0, -90],#3
-        #             [120, 70, 0, 0, 0, 60],#4
-        #             [140, 40, 0, 0, 0, 30],#5
-        #             [145, 0, 0, 0, 0, 0],#6
-        #         ]
-        #         domino_point_circle = trans(domino_point, theta[theta_count]).tolist()
-        #         domino_point_circle_up = trans(posx(domino_point_circle), delta).tolist()
-        #         movesx([
-        #             posx(right_point_up ),
-        #             posx(domino_point_circle_up),
-        #             posx(domino_point_circle)
-        #         ], ref=0)
-        #         gripper_release()
-        #         movel(
-        #             posx(domino_point_circle_up),
-        #         )
-        #         theta_count += 1
-        #         if theta_count >= 6:
-        #             dir_flag = -1
-        #             new_domino_starting_point = posx(domino_point_circle)
-        #             node.get_logger().info(f"시작 포인트 변경 : {new_domino_starting_point}\n")
-        #             theta_count = 0
-        #             rotate_flag = False
-
-        #     elif rotate_flag == True:
-        #         node.get_logger().info(f"우에서 좌\n")
-        #         gamma = [0, domino_length * 50, 0, 0, 0, 0]
-        #         domino_point = trans(domino_starting_point, gamma).tolist()
-        #         domino_point_up = trans(posx(domino_point), delta).tolist()
-        #         movesx([
-        #             posx(right_point_up ),
-        #             posx(domino_point_up),
-        #             posx(domino_point)
-        #         ], ref=0)
-        #         gripper_release()
-        #         movel(
-        #             posx(domino_point_up),
-        #         )
-        #     elif rotate_flag == False:
-        #         node.get_logger().info(f"좌에서 우\n")
-        #         gamma = [0, i * (-50), 0, 0, 0, 0]
-        #         domino_point = trans(new_domino_starting_point, gamma).tolist()
-        #         domino_point_up = trans(posx(domino_point), delta).tolist()
-        #         movesx([
-        #             posx(right_point_up ),
-        #             posx(domino_point_up),
-        #             posx(domino_point)
-        #         ], ref=0)
-        #         gripper_release()
-        #         movel(
-        #             posx(domino_point_up),
-        #         )
-        #         i += 1
-
-
-
-        #     gripper_release()
-
-
-        cup_index += 1
-
-        
-        gripper_release()
-
-
+    #while rclpy.ok():
+    put_down_up = [366.998, 6.125, 194.183, 3.263, -179.907, 3.271]
+    starting_point = [700.0, -100.0, 84, 90.0, 180.0, 90.0]
+    gripper_release()
+    time.sleep(0.2)
     movej(Global_0)
-    node.get_logger().info("One full cycle done! Looping again...\n")
-    rclpy.spin_once(node, timeout_sec=0.1)
+    
+    # 컵 쌓기
+    for z in range(3):
+        z_add = [0, 0, 94 * z, 0, 0, 0]
+        z_value = [a + b for a, b in zip(starting_point, z_add)]
+        for x in range(3-z):
+            x_add = [(-1) * CUP_DIAMETER  * (root3 / 3) * z + (-1) * CUP_DIAMETER  * (root3 / 2) * x, 0, 0, 0, 0, 0]
+            xz_value = [a + b for a, b in zip(z_value, x_add)]
+            for y in range(1+x):
+                #gripper_release()
+                node.get_logger().info(f"floor: {z}, x: {x}, y: {y}")
+                y_add = [0, CUP_DIAMETER/2 * x + (-1) * CUP_DIAMETER  * y, 0, 0, 0, 0]
+                xyz_value = [a + b for a, b in zip(xz_value, y_add)]
+
+                # 컵 하나 가져오기
+                last_pose = grip_cup(cup_index, put_down_up)
+
+                z_up_11 = [0, 0, 110, 0, 0, 0]
+                xyz_value_up = [a + b for a, b in zip(xyz_value, z_up_11)]
+                # movesx([
+                #     posx(last_pose),
+                #     posx(xyz_value_up),
+                #     posx(xyz_value)
+                # ], ref=0)
+                
+                movel(last_pose)
+                node.get_logger().info(f"Move to: {xyz_value_up}")
+                movel(xyz_value_up)
+                node.get_logger().info(f"Move to: {xyz_value}")
+                movel(xyz_value)
+                put_down_up = xyz_value_up
+
+                cup_index += 1
+                
+    gripper_release()
+    time.sleep(0.2)
+    movej(Global_0)
 
     node.get_logger().info("Shutting down node.")
     rclpy.shutdown()
