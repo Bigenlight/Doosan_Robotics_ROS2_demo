@@ -201,9 +201,12 @@ def main(args=None):
                 movel(xyz_value)
                 put_down_up = xyz_value_up
 
+                gripper_release()
                 cup_index += 1
+
     
     # 마지막 컵 뒤집어서 놓기
+    gripper_release()
     node.get_logger().info("마지막 컵")
 
     movej(q1)
