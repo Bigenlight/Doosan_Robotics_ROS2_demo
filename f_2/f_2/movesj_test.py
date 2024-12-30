@@ -5,7 +5,6 @@ import time
 from  math import *
 ROBOT_ID    = "dsr01"
 ROBOT_MODEL = "m0609"
-VELOCITY, ACC = 60, 60
 ON = 1
 OFF = 0
 
@@ -144,6 +143,8 @@ def main(args=None):
     going_to_put_list= [q4, q5, q6, q7]
     going_home_list= [q8, q9, q10]
 
+
+
     CUP_DIAMETER = 82
     CUP_STACK_GAP = 11.5
     root3 = sqrt(3)
@@ -187,26 +188,27 @@ def main(args=None):
                 else:
                     z_up = [0, 0, 110, 0, 0, 0]
                 xyz_value_up = [a + b for a, b in zip(xyz_value, z_up)]
-                # movesx([
-                #     posx(last_pose),
-                #     posx(xyz_value_up),
-                #     posx(xyz_value)
-                # ], ref=0)
+                movesx([
+                    posx(last_pose),
+                    posx(xyz_value_up),
+                    posx(xyz_value)
+                ], ref=0)
                 
-                movel(last_pose)
-                node.get_logger().info(f"Move to: {xyz_value_up}")
-                movel(xyz_value_up)
-                node.get_logger().info(f"Move to: {xyz_value}")
-                movel(xyz_value)
+                # movel(last_pose)
+                # node.get_logger().info(f"Move to: {xyz_value_up}")
+                # movel(xyz_value_up)
+                # node.get_logger().info(f"Move to: {xyz_value}")
+                # movel(xyz_value)
+
                 put_down_up = xyz_value_up
 
                 #while rclpy.ok():
-                task_compliance_ctrl(stx=[500, 500, 500, 100, 100, 100])
+                task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
                 set_desired_force(fd=[0, 0, -15, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
-                while not check_force_condition(DR_AXIS_Z, max=5):
+                while not check_force_condition(DR_AXIS_Z, max=3):
                     pass
                 release_compliance_ctrl()
-                
+
                 gripper_release()
                 cup_index += 1
 
@@ -225,6 +227,14 @@ def main(args=None):
     movej(q5)
     movej(q6)
     movej(q7)
+
+    #while rclpy.ok():
+    task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
+    set_desired_force(fd=[0, 0, -15, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
+    while not check_force_condition(DR_AXIS_Z, max=3):
+        pass
+    release_compliance_ctrl()
+    
     gripper_release()
     time.sleep(0.2)
 
