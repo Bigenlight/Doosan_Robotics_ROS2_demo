@@ -78,7 +78,7 @@ def main(args=None):
         rclpy.spin_once(node, timeout_sec=0.5)
         wait_digital_input(sig_num=1, desired_state=True)
         node.get_logger().info("Gripper closed")
-        time.sleep(0.4)
+        time.sleep(0.2)
 
     def gripper_release():
         set_digital_output(2, ON)
@@ -87,7 +87,7 @@ def main(args=None):
         rclpy.spin_once(node, timeout_sec=0.2)
         wait_digital_input(sig_num=2, desired_state=True)
         node.get_logger().info("Gripper opened")
-        time.sleep(0.4)
+        time.sleep(0.2)
 
     # 측정용 그립 (그립 된 것을 기다리지 않음)
     def gripper_measure():
@@ -95,7 +95,7 @@ def main(args=None):
         set_digital_output(2, OFF)
         node.get_logger().info("Measure...")
         node.get_logger().info("Gripper closed")
-        time.sleep(0.4)
+        time.sleep(0.2)
     
     def force_control_release(F):
         task_compliance_ctrl(stx=[3000, 3000, 3000, 100, 100, 100])
@@ -117,7 +117,6 @@ def main(args=None):
 
         # 힘 제어
         force_control_release(5)
-
         time.sleep(0.1)
 
         # 현재 위치를 얻어와 cup_starting_point_top에 대입
@@ -234,8 +233,7 @@ def main(args=None):
                 posx(cup_position_up),
                 posx(cup_position)
             ], vel = 400)
-            # movel(posx(cup_position_up))
-            # movel(posx(cup_position))
+
             node.get_logger().info(f"컵 위치로 이동: {cup_position}")
             time.sleep(0.2)
 
@@ -278,6 +276,7 @@ def main(args=None):
 
     # 컵 관련 파라미터
     CUP_DIAMETER = 82
+    CUP_HEIGHT = 94
     CUP_STACK_GAP = 11.5
     root3 = sqrt(3)
 
@@ -285,7 +284,7 @@ def main(args=None):
     set_singular_handling()  # or pass a parameter if needed
     set_velj(20.0)
     set_accj(20.0)
-    set_velx(300.0, 100.625)
+    set_velx(400.0, 100.625)
     set_accx(200.0, 100.5)
 
 
@@ -305,7 +304,7 @@ def main(args=None):
 
         # 컵 쌓기
         for z in range(3):
-            z_add = [0, 0, 94 * z, 0, 0, 0]
+            z_add = [0, 0, CUP_HEIGHT * z, 0, 0, 0]
             z_value = add_coordination(starting_point, z_add)
             for x in range(3-z):
                 x_add = [((-1) * CUP_DIAMETER  * (root3 / 3) * z) + ((-1) * CUP_DIAMETER  * (root3 / 2) * x), 0, 0, 0, 0, 0]
@@ -315,7 +314,7 @@ def main(args=None):
                     node.get_logger().info(f"floor: {z}, x: {x}, y: {y}")
                     y_add = [0, (-1)*(CUP_DIAMETER/2 * x) + (CUP_DIAMETER  * y), 0, 0, 0, 0]
                     xyz_value = add_coordination(xz_value, y_add)
-                    
+
                     # 2. 현재 xyz_value를 저장하는 함수 호출
                     save_xyz_value(add_coordination(xyz_value, [0, 0, -8, 0, 0, 0]))
 
