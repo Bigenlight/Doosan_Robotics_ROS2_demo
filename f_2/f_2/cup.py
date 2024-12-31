@@ -306,18 +306,16 @@ def main(args=None):
         # 컵 쌓기
         for z in range(3):
             z_add = [0, 0, 94 * z, 0, 0, 0]
-            # z_value = [a + b for a, b in zip(starting_point, z_add)]
             z_value = add_coordination(starting_point, z_add)
             for x in range(3-z):
                 x_add = [((-1) * CUP_DIAMETER  * (root3 / 3) * z) + ((-1) * CUP_DIAMETER  * (root3 / 2) * x), 0, 0, 0, 0, 0]
-                # xz_value = [a + b for a, b in zip(z_value, x_add)]
                 xz_value = add_coordination(z_value, x_add)
                 for y in range(1+x):
                     gripper_release()
                     node.get_logger().info(f"floor: {z}, x: {x}, y: {y}")
                     y_add = [0, (-1)*(CUP_DIAMETER/2 * x) + (CUP_DIAMETER  * y), 0, 0, 0, 0]
-                    # xyz_value = [a + b for a, b in zip(xz_value, y_add)]
                     xyz_value = add_coordination(xz_value, y_add)
+                    
                     # 2. 현재 xyz_value를 저장하는 함수 호출
                     save_xyz_value(add_coordination(xyz_value, [0, 0, -8, 0, 0, 0]))
 
