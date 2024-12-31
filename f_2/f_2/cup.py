@@ -39,7 +39,6 @@ def main(args=None):
             _movesj,
             movesx,
             movec,
-            # movesx,  # We won't use movesx
             set_singular_handling,
             set_velj,
             set_accj,
@@ -157,7 +156,6 @@ def main(args=None):
         time.sleep(0.2)
         gripper_grip()
         z_up_11 = [0, 0, 110, 0, 0, 0]
-        #cup_gripping_point_above = [a + b for a, b in zip(cup_gripping_point, z_up_11)]
         cup_gripping_point_above = add_coordination(cup_gripping_point, z_up_11)
         cup_gripping_point_above_right = add_coordination(cup_gripping_point_above, [0, -80, 10, 0, 0, 0])
 
@@ -254,8 +252,6 @@ def main(args=None):
                 posx(cup_releasing_point_up),
                 posx(cup_releasing_point),
             ], vel = 400)
-            # movel(posx(cup_releasing_point_up))
-            # movel(posx(cup_releasing_point))
         
             # 컵 놓기
             gripper_release()
@@ -266,8 +262,6 @@ def main(args=None):
     ###################### 좌표 및 파라미터 정의 ############################
     # 홈
     Global_0 = posj(0.00, 0.0, 90.0, 0.0, 90.0, 0.0)
-    # 컵 시작 위치, 꼭대기 (11층) 집는 위치 (베이스 좌표)
-    #cup_starting_point_top = [405.801, 222.796, 213.67, 90.0, 180.0, 90.0]
     # 마지막 컵
     q1 = posj(24.972, 17.703, 51.714, 0.696, 111.215, -0.064) # posj 변수(관절각) q1 정의
     q2 = posj(72.144, 39.267, 81.066, -58.421, 113.432, 52.264) 
@@ -295,17 +289,8 @@ def main(args=None):
     set_accx(200.0, 100.5)
 
 
-    ############################## 시작 #################################################
+    ################################## 시작 #################################################
     while rclpy.ok():
-        # #테스트, 지울 것
-        # movej(Global_0)
-        # xyz_value = [485.3145558529014, -100.0, 272, 90.0, 180.0, 90.0]
-        # top_cup_pose = last_cup_stacking(xyz_value)
-        # time.sleep(5)
-
-        # last_cup_unstack(top_cup_pose)
-        # # #
-
         cup_index = 0
 
         # 컵 시작 배열 위치
@@ -343,7 +328,6 @@ def main(args=None):
                         z_up = [0, 0, 25, 0, 0, 0]
                     else:
                         z_up = [0, 0, 50, 0, 0, 0]
-                    # xyz_value_up = [a + b for a, b in zip(xyz_value, z_up)]
                     xyz_value_up = add_coordination(xyz_value, z_up)
 
                     movesx([
@@ -370,7 +354,7 @@ def main(args=None):
         amovej(Global_0)
         time.sleep(2)
 
-        ###### 정리 ######
+        ################### 정리 ########################
         # 맨 위 컵 정리
         last_cup_unstack(top_cup_pose)
 
@@ -381,6 +365,7 @@ def main(args=None):
         movej(Global_0)
         node.get_logger().info("루프 완료!")
         time.sleep(2)
+
 
     node.get_logger().info("Shutting down node.")
     rclpy.shutdown()
