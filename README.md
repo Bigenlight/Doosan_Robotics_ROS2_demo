@@ -1,4 +1,4 @@
-# Doosan_Robotics_ROS2
+# Doosan_Robotics_ROS2_demo
 
 ### Stacking Cup
 
