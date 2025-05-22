@@ -1,5 +1,5 @@
 # Doosan_Robotics_ROS2_demo
-
+Demo code for few tasks using Doosan Robotics ROS2 repo.
 ### Stacking Cup
 
 [![Watch the video](https://img.youtube.com/vi/NEoI1mWCngs/0.jpg)](https://www.youtube.com/watch?v=NEoI1mWCngs)
